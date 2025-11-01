@@ -164,6 +164,12 @@ local taskDescriptionList={
     [68]="摧毁3个乞丐",
     [69]="击败3个七宗罪boss",
     [70]="完成全支线路线，以离开陵墓2层为完成",
+    [71]="Boss Rush和凹凸连打",
+    [72]="打完凹凸后直接打百变怪",
+    [73]="喂饱1个抽奖乞丐",
+    [74]="拥有1个带蓄力条的道具",
+    [75]="拥有1个符文",
+    [76]="击败腐化妈腿"
 }
 
 
@@ -239,8 +245,8 @@ local function updateBingoMapConfigAndRemoveCallBack(task)
         end
         if Bingo.gameMode==0 then
             task.task.achieveBy=0
-            task.task.achieveSound:Play(579,20)
-            task.task.achieveSound:Play(128,1)
+            achieveSound:Play(579,20)
+            achieveSound:Play(128,1)
             Bingo:getMapConfig(task.task.renderXOffset,task.task.renderYOffset)
             Bingo.finishTasksNum=Bingo.finishTasksNum+1
             task.task.signal1=1
@@ -309,7 +315,7 @@ local function isItemInCurrentRoomItemPool(task)
         isUseVoidOrBlackRune.isUseVoid = false
         isUseVoidOrBlackRune.isUseBlackRune = false
     end
-    if Bingo.player:IsItemQueueEmpty() and task.detailedTaskPart.signal == 1 and task.detailedTaskPart.isAchieved == false and task.detailedTaskPart.achieveCount < task.detailedTaskPart.TARGET_NUM then
+    if Bingo.player:IsItemQueueEmpty() and task.detailedTaskPart.signal == 1 and task.task.isAchieved == false and task.detailedTaskPart.achieveCount < task.detailedTaskPart.TARGET_NUM then
         if isUseVoidOrBlackRune.isUseBlackRune or (isUseVoidOrBlackRune.isUseVoid and (task.detailedTaskPart.item == ItemType.ITEM_PASSIVE or task.detailedTaskPart.item == ItemType.ITEM_FAMILIAR)) then
             isUseVoidOrBlackRune.isUseBlackRune = false
             isUseVoidOrBlackRune.isUseVoid = false
@@ -337,69 +343,95 @@ end
 -- pickUpCollectible 的子类，都为具体的任务
 
 -- 任务1：在天使房拿1个天使房底座道具
-local task1={
-    task=tasks_new(true,1,taskDescriptionList[1]),
-    detailedTaskPart=pickUpCollectibleOption(1,ItemType.ITEM_NULL,itemPoolOfAngel,{RoomType.ROOM_ANGEL},-1,-1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        function (task)
-            isItemInCurrentRoomItemPool(task.detailedTaskPart)
-        end
+local function task1()
+    local obj = {
+        task = tasks_new(true, 1, taskDescriptionList[1]),
+        detailedTaskPart = pickUpCollectibleOption(1, ItemType.ITEM_NULL, itemPoolOfAngel, { RoomType.ROOM_ANGEL }, -1,
+            -1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            function(task)
+                isItemInCurrentRoomItemPool(task.detailedTaskPart)
+            end
+        }
     }
-}
+    return obj
+end
 
 -- 任务2：在恶魔房拿3个恶魔房底座道具
-local task2={
-    task=tasks_new(true,2,taskDescriptionList[2]),
-    detailedTaskPart=pickUpCollectibleOption(3,ItemType.ITEM_NULL,itemPoolOfDevil,{RoomType.ROOM_DEVIL},-1,-1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        isItemInCurrentRoomItemPool
+local function task2()
+    local obj = {
+        task = tasks_new(true, 2, taskDescriptionList[2]),
+        detailedTaskPart = pickUpCollectibleOption(3, ItemType.ITEM_NULL, itemPoolOfDevil, { RoomType.ROOM_DEVIL }, -1,
+            -1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            isItemInCurrentRoomItemPool
+        }
     }
-}
+    return obj
+end
 
 -- 任务6：在隐藏房拿1个隐藏房底座道具
-local task6={
-    task=tasks_new(true,6,taskDescriptionList[6]),
-    detailedTaskPart=pickUpCollectibleOption(1,ItemType.ITEM_NULL,itemPoolOfSecret,{RoomType.ROOM_SECRET,RoomType.ROOM_SUPERSECRET},-1,-1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        isItemInCurrentRoomItemPool
+local function task6()
+    local obj = {
+        task = tasks_new(true, 6, taskDescriptionList[6]),
+        detailedTaskPart = pickUpCollectibleOption(1, ItemType.ITEM_NULL, itemPoolOfSecret,
+            { RoomType.ROOM_SECRET, RoomType.ROOM_SUPERSECRET }, -1, -1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            isItemInCurrentRoomItemPool
+        }
     }
-}
+    return obj
+end
 
 -- 任务7：在红隐藏房拿1个红隐藏底座道具
-local task7={
-    task=tasks_new(true,7,taskDescriptionList[7]),
-    detailedTaskPart=pickUpCollectibleOption(1,ItemType.ITEM_NULL,itemPoolOfUltraSecret,{RoomType.ROOM_ULTRASECRET},-1,-1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        isItemInCurrentRoomItemPool
+local function task7()
+    local obj = {
+        task = tasks_new(true, 7, taskDescriptionList[7]),
+        detailedTaskPart = pickUpCollectibleOption(1, ItemType.ITEM_NULL, itemPoolOfUltraSecret,
+            { RoomType.ROOM_ULTRASECRET }, -1, -1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            isItemInCurrentRoomItemPool
+        }
     }
-}
+    return obj
+end
 
 -- 任务15：在星象房拿1个星象房底座道具
-local task15={
-    task=tasks_new(true,15,taskDescriptionList[15]),
-    detailedTaskPart=pickUpCollectibleOption(1,ItemType.ITEM_NULL,itemPoolOfPlanetarium,{RoomType.ROOM_PLANETARIUM},-1,-1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        isItemInCurrentRoomItemPool
+local function task15()
+    local obj = {
+        task = tasks_new(true, 15, taskDescriptionList[15]),
+        detailedTaskPart = pickUpCollectibleOption(1, ItemType.ITEM_NULL, itemPoolOfPlanetarium,
+            { RoomType.ROOM_PLANETARIUM }, -1, -1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            isItemInCurrentRoomItemPool
+        }
     }
-}
+    return obj
+end
 
 -- 任务8： 拿到1个0级底座道具
-local task8={
-    task=tasks_new(true,8,taskDescriptionList[8]),
-    detailedTaskPart=pickUpCollectibleOption(1,ItemType.ITEM_NULL,itemPoolOfNull,RoomType.ROOM_NULL,-1,0),
-    [ModCallbacks.MC_POST_UPDATE]={
-        isItemInCurrentRoomItemPool
+local function task8()
+    local obj = {
+        task = tasks_new(true, 8, taskDescriptionList[8]),
+        detailedTaskPart = pickUpCollectibleOption(1, ItemType.ITEM_NULL, itemPoolOfNull, RoomType.ROOM_NULL, -1, 0),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            isItemInCurrentRoomItemPool
+        }
     }
-}
+    return obj
+end
 
 -- 任务9：拿到1个4级底座道具
-local task9={
-    task=tasks_new(true,9,taskDescriptionList[9]),
-    detailedTaskPart=pickUpCollectibleOption(1,ItemType.ITEM_NULL,itemPoolOfNull,RoomType.ROOM_NULL,-1,4),
-    [ModCallbacks.MC_POST_UPDATE]={
-        isItemInCurrentRoomItemPool
+local function task9()
+    local obj = {
+        task = tasks_new(true, 9, taskDescriptionList[9]),
+        detailedTaskPart = pickUpCollectibleOption(1, ItemType.ITEM_NULL, itemPoolOfNull, RoomType.ROOM_NULL, -1, 4),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            isItemInCurrentRoomItemPool
+        }
     }
-}
+    return obj
+end
 
 ---------------------------------------------
 
@@ -459,113 +491,152 @@ end
 -- hasItems 的子类，都为具体的任务
 
 -- 任务3：拥有死亡证明
-local task3={
-    task=tasks_new(true,3,taskDescriptionList[3]),
-    detailedTaskPart=hasItemsOption({collectibles={628}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasItemsWithTag
+local function task3()
+    local obj = {
+        task = tasks_new(true, 3, taskDescriptionList[3]),
+        detailedTaskPart = hasItemsOption({ collectibles = { 628 } }, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasItemsWithTag
+        }
     }
-}
+    return obj
+end
 
 -- 任务17：拥有R键
-local task17={
-    task=tasks_new(true,17,taskDescriptionList[17]),
-    detailedTaskPart=hasItemsOption({collectibles={636}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasItemsWithTag
+local function task17()
+    local obj = {
+        task = tasks_new(true, 17, taskDescriptionList[17]),
+        detailedTaskPart = hasItemsOption({ collectibles = { 636 } }, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasItemsWithTag
+        }
     }
-}
+    return obj
+end
 
 -- 任务4：拥有饰品A+
-local task4={
-    task=tasks_new(true,4,taskDescriptionList[4]),
-    detailedTaskPart=hasItemsOption({Trinkets={145}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasItemsWithTag
+local function task4()
+    local obj = {
+        task = tasks_new(true, 4, taskDescriptionList[4]),
+        detailedTaskPart = hasItemsOption({ Trinkets = { 145 } }, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasItemsWithTag
+        }
     }
-}
+    return obj
+end
 
 -- 任务21：凑齐两把钥匙碎片
-local task21={
-    task=tasks_new(true,21,taskDescriptionList[21]),
-    detailedTaskPart=hasItemsOption({collectibles={238,239}},2),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasItemsWithTag
+local function task21()
+    local obj = {
+        task = tasks_new(true, 21, taskDescriptionList[21]),
+        detailedTaskPart = hasItemsOption({ collectibles = { 238, 239 } }, 2),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasItemsWithTag
+        }
     }
-}
+    return obj
+end
 
 -- 任务36：拥有5个带食物标签的道具
-local task36={
-    task=tasks_new(true,36,taskDescriptionList[36]),
-    detailedTaskPart=hasItemsOption(itemTagOfFood,5),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasItemsWithTag
+local function task36()
+    local obj = {
+        task = tasks_new(true, 36, taskDescriptionList[36]),
+        detailedTaskPart = hasItemsOption(itemTagOfFood, 5),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasItemsWithTag
+        }
     }
-}
+    return obj
+end
 
 -- 任务50：拥有1个骰子主题的道具、饰品、掉落物
-local task50={
-    task=tasks_new(true,50,taskDescriptionList[50]),
-    detailedTaskPart=hasItemsOption(itemTagOfDice,1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasItemsWithTag
+local function task50()
+    local obj = {
+        task = tasks_new(true, 50, taskDescriptionList[50]),
+        detailedTaskPart = hasItemsOption(itemTagOfDice, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasItemsWithTag
+        }
     }
-}
+    return obj
+end
 
 -- 任务44：拥有饰品血虱
-local task44={
-    task=tasks_new(true,44,taskDescriptionList[44]),
-    detailedTaskPart=hasItemsOption({Trinkets={53}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasItemsWithTag
+local function task44()
+    local obj = {
+        task = tasks_new(true, 44, taskDescriptionList[44]),
+        detailedTaskPart = hasItemsOption({ Trinkets = { 53 } }, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasItemsWithTag
+        }
     }
-}
+    return obj
+end
 
 
 -- 任务43：拥有道具小石头
-local task43={
-    task=tasks_new(true,43,taskDescriptionList[43]),
-    detailedTaskPart=hasItemsOption({collectibles={90}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasItemsWithTag
+local function task43()
+    local obj = {
+        task = tasks_new(true, 43, taskDescriptionList[43]),
+        detailedTaskPart = hasItemsOption({ collectibles = { 90 } }, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasItemsWithTag
+        }
     }
-}
+    return obj
+end
 
 -- 任务39 拿到1张倒卡
-local task39={
-    task=tasks_new(true,39,taskDescriptionList[39]),
-    detailedTaskPart=hasItemsOption({pickUps={56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasItemsWithTag
+local function task39()
+    local obj = {
+        task = tasks_new(true, 39, taskDescriptionList[39]),
+        detailedTaskPart = hasItemsOption({ pickUps = { 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77 } },
+            1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasItemsWithTag
+        }
     }
-}
+    return obj
+end
 
 -- 任务59：拥有一个疾病主题的道具
-local task59={
-    task=tasks_new(true,59,taskDescriptionList[59]),
-    detailedTaskPart=hasItemsOption(itemTagOfIllness,1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasItemsWithTag
+local function task59()
+    local obj = {
+        task = tasks_new(true, 59, taskDescriptionList[59]),
+        detailedTaskPart = hasItemsOption(itemTagOfIllness, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasItemsWithTag
+        }
     }
-}
+    return obj
+end
 
 -- 任务75：拥有1个符文
-local task75={
-    task=tasks_new(true,75,taskDescriptionList[75]),
-    detailedTaskPart=hasItemsOption({pickUps={32,33,34,35,36,37,38,39,40,41,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasItemsWithTag
+local function task75()
+    local obj = {
+        task = tasks_new(true, 75, taskDescriptionList[75]),
+        detailedTaskPart = hasItemsOption(
+        { pickUps = { 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97 } },
+            1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasItemsWithTag
+        }
     }
-}
+    return obj
+end
 
 -- 任务74: 拥有1个带蓄力条的道具
-local task74={
-    task=tasks_new(true,74,taskDescriptionList[74]),
-    detailedTaskPart=hasItemsOption(itemTagOfCollectiblesWithChargeBar,1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasItemsWithTag
+local function task74()
+    local obj = {
+        task = tasks_new(true, 74, taskDescriptionList[74]),
+        detailedTaskPart = hasItemsOption(itemTagOfCollectiblesWithChargeBar, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasItemsWithTag
+        }
     }
-}
+    return obj
+end
 
 ---------------------------------------------
 
@@ -575,13 +646,13 @@ local task74={
 --   map: 该任务是否在图上
 --   index: 该任务的索引（如任务1索引则为1）
 --   TARGET_BOSS: 目标boss
-local function bossesOption(targetBosses,targetNum)
-    local obj={
-        bossPtr={},
-        TARGET_BOSS=targetBosses,
-        TARGET_NUM=targetNum,
-        currentRoom=0,
-        achieveCount=0
+local function bossesOption(targetBosses, targetNum)
+    local obj = {
+        bossPtr = {},
+        TARGET_BOSS = targetBosses,
+        TARGET_NUM = targetNum,
+        currentRoom = 0,
+        achieveCount = 0
     }
     return obj
 end
@@ -616,188 +687,234 @@ end
 -- bosses 的子类，都为具体的任务
 
 -- 任务22：击败以撒
-local task22={
-    task=tasks_new(true,22,taskDescriptionList[22]),
-    detailedTaskPart=bossesOption({{type=EntityType.ENTITY_ISAAC,variant=0}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses
-    },
-    conflictTasks={28,31,41,52,72}
-}
+local function task22()
+    local obj = {
+        task = tasks_new(true, 22, taskDescriptionList[22]),
+        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_ISAAC, variant = 0 } }, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses
+        },
+        conflictTasks = { 28, 31, 41, 52, 72 }
+    }
+    return obj
+end
 
 -- 任务23：击败小蓝人
-local task23={
-    task=tasks_new(true,23,taskDescriptionList[23]),
-    detailedTaskPart=bossesOption({{type=EntityType.ENTITY_ISAAC,variant=1}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses
-    },
-    conflictTasks={28,31,41,52,72}
-}
+local function task23()
+    local obj = {
+        task = tasks_new(true, 23, taskDescriptionList[23]),
+        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_ISAAC, variant = 1 } }, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses
+        },
+        conflictTasks = { 28, 31, 41, 52, 72 }
+    }
+    return obj
+end
 
 -- 任务24：击败凹凸
-local task24={
-    task=tasks_new(true,24,taskDescriptionList[24]),
-    detailedTaskPart=bossesOption({{type=EntityType.ENTITY_HUSH,variant=0}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses
-    },
-    conflictTasks={31,52}
-}
+local function task24()
+    local obj = {
+        task = tasks_new(true, 24, taskDescriptionList[24]),
+        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_HUSH, variant = 0 } }, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses
+        },
+        conflictTasks = { 31, 52 }
+    }
+    return obj
+end
 
 -- 任务28：击败羔羊
-local task28={
-    task=tasks_new(true,28,taskDescriptionList[28]),
-    detailedTaskPart=bossesOption({{type=EntityType.ENTITY_THE_LAMB,variant=0}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses
-    },
-    conflictTasks={22,23,31,52,72}
-}
+local function task28()
+    local obj = {
+        task = tasks_new(true, 28, taskDescriptionList[28]),
+        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_THE_LAMB, variant = 0 } }, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses
+        },
+        conflictTasks = { 22, 23, 31, 52, 72 }
+    }
+    return obj
+end
 
 -- 任务31：击败见证者
-local task31={
-    task=tasks_new(true,31,taskDescriptionList[31]),
-    detailedTaskPart=bossesOption({{type=EntityType.ENTITY_MOTHER,variant=10}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses
-    },
-    conflictTasks={22,23,24,28,41,47,52,71,72}
-}
+local function task31()
+    local obj = {
+        task = tasks_new(true, 31, taskDescriptionList[31]),
+        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_MOTHER, variant = 10 } }, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses
+        },
+        conflictTasks = { 22, 23, 24, 28, 41, 47, 52, 71, 72 }
+    }
+    return obj
+end
 
 -- 任务41：击败撒旦
-local task41={
-    task=tasks_new(true,41,taskDescriptionList[41]),
-    detailedTaskPart=bossesOption({{type=EntityType.ENTITY_SATAN,variant=10}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses
-    },
-    conflictTasks={22,23,31,52,72}
-}
+local function task41()
+    local obj = {
+        task = tasks_new(true, 41, taskDescriptionList[41]),
+        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_SATAN, variant = 10 } }, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses
+        },
+        conflictTasks = { 22, 23, 31, 52, 72 }
+    }
+    return obj
+end
 
 -- 任务47：击败超级撒旦
-local task47={
-    task=tasks_new(true,47,taskDescriptionList[47]),
-    detailedTaskPart=bossesOption({{type=EntityType.ENTITY_MEGA_SATAN_2,variant=0}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses
-    },
-    conflictTasks={31,52,72}
-}
+local function task47()
+    local obj = {
+        task = tasks_new(true, 47, taskDescriptionList[47]),
+        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_MEGA_SATAN_2, variant = 0 } }, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses
+        },
+        conflictTasks = { 31, 52, 72 }
+    }
+    return obj
+end
 
 -- 任务32：完成一次矿层追逐战（神庙逃亡）
-local task32={
-    task=tasks_new(true,32,taskDescriptionList[32]),
-    detailedTaskPart=bossesOption({{type=EntityType.ENTITY_MOTHERS_SHADOW,variant=0}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses
+local function task32()
+    local obj = {
+        task = tasks_new(true, 32, taskDescriptionList[32]),
+        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_MOTHERS_SHADOW, variant = 0 } }, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses
+        }
     }
-}
+    return obj
+end
 
 -- 任务52：击败祸兽
-local task52={
-    task=tasks_new(true,52,taskDescriptionList[52]),
-    detailedTaskPart=bossesOption({{type=EntityType.ENTITY_BEAST,variant=0}}),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses
-    },
-    conflictTasks={22,23,24,28,31,41,47,71,72}
-}
+local function task52()
+    local obj = {
+        task = tasks_new(true, 52, taskDescriptionList[52]),
+        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_BEAST, variant = 0 } }),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses
+        },
+        conflictTasks = { 22, 23, 24, 28, 31, 41, 47, 71, 72 }
+    }
+    return obj
+end
 
 -- 任务58：击败大小贪婪头目
-local task58={
-    task=tasks_new(true,58,taskDescriptionList[58]),
-    detailedTaskPart=bossesOption({{type=EntityType.ENTITY_GREED,variant=0},{type=EntityType.ENTITY_GREED,variant=1}},2),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses
+local function task58()
+    local obj = {
+        task = tasks_new(true, 58, taskDescriptionList[58]),
+        detailedTaskPart = bossesOption(
+        { { type = EntityType.ENTITY_GREED, variant = 0 }, { type = EntityType.ENTITY_GREED, variant = 1 } }, 2),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses
+        }
     }
-}
+    return obj
+end
 
 -- 任务67：摧毁6次店长尸体
-local task67={
-    task=tasks_new(true,67,taskDescriptionList[67]),
-    detailedTaskPart=bossesOption({{type=EntityType.ENTITY_SHOPKEEPER,variant=0},
-         {type=EntityType.ENTITY_SHOPKEEPER,variant=1},
-         {type=EntityType.ENTITY_SHOPKEEPER,variant=2},
-         {type=EntityType.ENTITY_SHOPKEEPER,variant=3},
-         {type=EntityType.ENTITY_SHOPKEEPER,variant=4}},6),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses
+local function task67()
+    local obj = {
+        task = tasks_new(true, 67, taskDescriptionList[67]),
+        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_SHOPKEEPER, variant = 0 },
+            { type = EntityType.ENTITY_SHOPKEEPER, variant = 1 },
+            { type = EntityType.ENTITY_SHOPKEEPER, variant = 2 },
+            { type = EntityType.ENTITY_SHOPKEEPER, variant = 3 },
+            { type = EntityType.ENTITY_SHOPKEEPER, variant = 4 } }, 6),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses
+        }
     }
-}
+    return obj
+end
 
 -- 任务69：击败3个七宗罪boss
-local task69={
-    task=tasks_new(true,67,taskDescriptionList[69]),
-    detailedTaskPart=bossesOption(entityPoolOfSins,3),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses
+local function task69()
+    local obj = {
+        task = tasks_new(true, 67, taskDescriptionList[69]),
+        detailedTaskPart = bossesOption(entityPoolOfSins, 3),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses
+        }
     }
-}
+    return obj
+end
 
 -- 任务71辅助函数
 local function task71AssistanceFunc1(task)
-    if Bingo.game:GetLevel():GetStage()==1 then
-        task.detailedTaskPart.achieveCount=0
-        task.signal=0
+    if Bingo.game:GetLevel():GetStage() == 1 then
+        task.detailedTaskPart.achieveCount = 0
+        task.signal = 0
     end
     if Bingo.game:GetStateFlag(GameStateFlag.STATE_BOSSRUSH_DONE) and
-        task.signal==0 then
-        task.detailedTaskPart.achieveCount=task.detailedTaskPart.achieveCount+1
+        task.signal == 0 then
+        task.detailedTaskPart.achieveCount = task.detailedTaskPart.achieveCount + 1
         checkTaskIfAchived(task)
-        task.signal=1
+        task.signal = 1
     end
 end
 -- 任务71：Boss Rush和凹凸连打
-local task71={
-    task=tasks_new(true,71,taskDescriptionList[71]),
-    detailedTaskPart=bossesOption({{type=EntityType.ENTITY_HUSH,variant=0}},2),
-    signal=0,
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses,
-        task71AssistanceFunc1
-    },
-    conflictTasks={31,52}
-}
+local function task71()
+    local obj = {
+        task = tasks_new(true, 71, taskDescriptionList[71]),
+        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_HUSH, variant = 0 } }, 2),
+        signal = 0,
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses,
+            task71AssistanceFunc1
+        },
+        conflictTasks = { 31, 52 }
+    }
+    return obj
+end
 
 -- 任务72辅助函数
 local function task72AssistanceFunc1(task)
-    if Bingo.game:GetLevel():GetStage()==1 then
-        task.detailedTaskPart.achieveCount=0
-        task.signal=0
+    if Bingo.game:GetLevel():GetStage() == 1 then
+        task.detailedTaskPart.achieveCount = 0
+        task.signal = 0
     end
-    if Bingo.game:GetStateFlag(GameStateFlag.STATE_BLUEWOMB_DONE) and task.signal==0 then
-        task.detailedTaskPart.achieveCount=task.detailedTaskPart.achieveCount+1
+    if Bingo.game:GetStateFlag(GameStateFlag.STATE_BLUEWOMB_DONE) and task.signal == 0 then
+        task.detailedTaskPart.achieveCount = task.detailedTaskPart.achieveCount + 1
         checkTaskIfAchived(task)
-        task.signal=1
+        task.signal = 1
     end
-    if Bingo.game:GetStateFlag(GameStateFlag.STATE_BLUEWOMB_DONE) and (Bingo.game:GetLevel():GetStage()~= LevelStage.STAGE4_3 or
-    Bingo.game:GetLevel():GetStage()~=LevelStage.STAGE7) then
-        task.detailedTaskPart.achieveCount=0
+    if Bingo.game:GetStateFlag(GameStateFlag.STATE_BLUEWOMB_DONE) and (Bingo.game:GetLevel():GetStage() ~= LevelStage.STAGE4_3 or
+            Bingo.game:GetLevel():GetStage() ~= LevelStage.STAGE7) then
+        task.detailedTaskPart.achieveCount = 0
         checkTaskIfAchived(task)
     end
 end
 -- 任务72：打完凹凸后直接打百变怪
-local task72={
-    task=tasks_new(true,72,taskDescriptionList[72]),
-    detailedTaskPart=bossesOption({{type=EntityType.ENTITY_DELIRIUM,variant=0}},2),
-    signal=0,
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses,
-        task72AssistanceFunc1
-    },
-    conflictTasks={22,23,28,31,41,47,52}
-}
+local function task72()
+    local obj = {
+        task = tasks_new(true, 72, taskDescriptionList[72]),
+        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_DELIRIUM, variant = 0 } }, 2),
+        signal = 0,
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses,
+            task72AssistanceFunc1
+        },
+        conflictTasks = { 22, 23, 28, 31, 41, 47, 52 }
+    }
+    return obj
+end
 
 -- 任务76：击败腐化妈腿
-local task76={
-    task=tasks_new(true,76,taskDescriptionList[76]),
-    detailedTaskPart=bossesOption({{type=EntityType.ENTITY_MOM,subType=3},
-         {type=EntityType.ENTITY_MOM,variant=10,subType=3}},1),
-    [ModCallbacks.MC_POST_UPDATE]={
-        hasKilledBosses
+local function task76()
+    local obj = {
+        task = tasks_new(true, 76, taskDescriptionList[76]),
+        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_MOM, subType = 3 },
+            { type = EntityType.ENTITY_MOM, variant = 10, subType = 3 } }, 1),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            hasKilledBosses
+        }
     }
-}
+    return obj
+end
 
 ---------------------------------------------
 
@@ -807,135 +924,93 @@ local task76={
 --   map: 该任务是否在图上
 --   index: 该任务的索引（如任务1索引则为1）
 --   TARGET_PLAYERFORM: 目标套装
-local playerFormsOption={
-    constructor=function (self,map,index,playerForm,type_,type1_)
-        local obj=tasks:new(map,index,type_,type1_)
-        obj.TARGET_PLAYERFORM=playerForm
-        setmetatable(obj,self)
-        return obj
-    end,
-    methods={
-        hasPlayerForm=function (self)
-            if Bingo.player:HasPlayerForm(self.TARGET_PLAYERFORM) then
-                self.isAchieved=true
-            end
-            tasks.updateBingoMapConfigAndRemoveCallBack(self)
-        end
+local function playerFormsOption(playerForm)
+    local obj={
+        TARGET_PLAYERFORM=playerForm
     }
-}
-local playerForms=createSingleClass(tasks,playerFormsOption)
+    return obj
+end
+
+local function hasPlayerForm(task)
+    if Bingo.player:HasPlayerForm(task.detailedTaskPart.TARGET_PLAYERFORM) then
+        task.task.isAchieved = true
+    end
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
 
 -- playerForms 的子类，都为具体的任务
 
 -- 任务5：针套
-local task5Options={
-    constructor=function (self)
-        local obj=playerForms:new(true,
-        5,
-        PlayerForm.PLAYERFORM_DRUGS,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="针套"
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.hasPlayerForm
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task5=createSingleClass(playerForms,task5Options)
+local function task5()
+    local obj={
+        task=tasks_new(true,5,taskDescriptionList[5]),
+        detailedTaskPart=playerFormsOption(PlayerForm.PLAYERFORM_DRUGS),
+        [ModCallbacks.MC_POST_UPDATE]={
+            hasPlayerForm
+        }
+    }
+    return obj
+end
 
 -- 任务14：猫套
-local task14Options={
-    constructor=function (self)
-        local obj=playerForms:new(true,
-        14,
-        PlayerForm.PLAYERFORM_GUPPY,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="猫套"
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.hasPlayerForm
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task14=createSingleClass(playerForms,task14Options)
+local function task14()
+    local obj={
+        task=tasks_new(true,14,taskDescriptionList[14]),
+        detailedTaskPart=playerFormsOption(PlayerForm.PLAYERFORM_GUPPY),
+        [ModCallbacks.MC_POST_UPDATE]={
+            hasPlayerForm
+        }
+    }
+    return obj
+end
 
 -- 任务25：书套
-local task25Options={
-    constructor=function (self)
-        local obj=playerForms:new(true,
-        25,
-        PlayerForm.PLAYERFORM_BOOK_WORM,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="书套"
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.hasPlayerForm
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task25=createSingleClass(playerForms,task25Options)
+local function task25()
+    local obj={
+        task=tasks_new(true,25,taskDescriptionList[25]),
+        detailedTaskPart=playerFormsOption(PlayerForm.PLAYERFORM_BOOK_WORM),
+        [ModCallbacks.MC_POST_UPDATE]={
+            hasPlayerForm
+        }
+    }
+    return obj
+end
 
 -- 任务33：天使套
-local task33Options={
-    constructor=function (self)
-        local obj=playerForms:new(true,
-        33,
-        PlayerForm.PLAYERFORM_ANGEL,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="天使套"
-        obj.conflictTasks={48}
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.hasPlayerForm
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task33=createSingleClass(playerForms,task33Options)
+local function task33()
+    local obj={
+        task=tasks_new(true,33,taskDescriptionList[33]),
+        detailedTaskPart=playerFormsOption(PlayerForm.PLAYERFORM_ANGEL),
+        [ModCallbacks.MC_POST_UPDATE]={
+            hasPlayerForm
+        }
+    }
+    return obj
+end
 
 -- 任务48：恶魔套
-local task48Options={
-    constructor=function (self)
-        local obj=playerForms:new(true,
-        48,
-        PlayerForm.PLAYERFORM_EVIL_ANGEL,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="恶魔套"
-        obj.conflictTasks={33}
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.hasPlayerForm
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task48=createSingleClass(playerForms,task48Options)
+local function task48()
+    local obj={
+        task=tasks_new(true,48,taskDescriptionList[48]),
+        detailedTaskPart=playerFormsOption(PlayerForm.PLAYERFORM_EVIL_ANGEL),
+        [ModCallbacks.MC_POST_UPDATE]={
+            hasPlayerForm
+        }
+    }
+    return obj
+end
 
 -- 任务63：妈套
-local task63Options={
-    constructor=function (self)
-        local obj=playerForms:new(true,
-        63,
-        PlayerForm.PLAYERFORM_MOM,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="妈套"
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.hasPlayerForm
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task63=createSingleClass(playerForms,task63Options)
+local function task63()
+    local obj={
+        task=tasks_new(true,63,taskDescriptionList[63]),
+        detailedTaskPart=playerFormsOption(PlayerForm.PLAYERFORM_MOM),
+        [ModCallbacks.MC_POST_UPDATE]={
+            hasPlayerForm
+        }
+    }
+    return obj
+end
 
 ---------------------------------------------
 
@@ -946,130 +1021,92 @@ local task63=createSingleClass(playerForms,task63Options)
 --   index: 该任务的索引（如任务1索引则为1）
 --   targetAttribute: 目标属性
 --   TARGET_NUM: 属性的目标数值
-local attributeOption={
-    constructor=function (self,map,index,attribute,targetNum,type_,type1_)
-        local obj=tasks:new(map,index,type_,type1_)
-        obj.targetAttribute=attribute
-        obj.TARGET_NUM=targetNum
-        setmetatable(obj,self)
-        return obj
-    end,
-    methods={
-        attributeComparison=function (self)
-            self.achieveCount=self.targetAttribute()
-            tasks.checkTaskIfAchived(self)
-            tasks.updateBingoMapConfigAndRemoveCallBack(self)
-        end
+local function attributeOption(attribute,targetNum)
+    local obj={
+        targetAttribute=attribute,
+        TARGET_NUM=targetNum,
+        achieveCount=0
     }
-}
-local attribute=createSingleClass(tasks,attributeOption)
+    return obj
+end
+
+local function attributeComparison(task)
+    task.detailedTaskPart.achieveCount = task.detailedTaskPart.targetAttribute()
+    checkTaskIfAchived(task)
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
 
 -- attribute 的子类，都为具体的任务
 
 -- 任务10：射速≥7
-local task10Options={
-    constructor=function (self)
-        local obj=attribute:new(true,
-        10,
-        function ()
+local function task10()
+    local obj={
+        task=tasks_new(true,10,taskDescriptionList[10]),
+        detailedTaskPart=attributeOption(function ()
             return 30.0000/(Bingo.player.MaxFireDelay+1)
-        end,
-        7.00,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="射速≥7"
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.attributeComparison
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task10=createSingleClass(attribute,task10Options)
+        end,7.00),
+        [ModCallbacks.MC_POST_UPDATE]={
+            attributeComparison
+        }
+    }
+    return obj
+end
 
 -- 任务20：幸运≥4
-local task20Options={
-    constructor=function (self)
-        local obj=attribute:new(true,
-        20,
-        function ()
+local function task20()
+    local obj={
+        task=tasks_new(true,20,taskDescriptionList[20]),
+        detailedTaskPart=attributeOption(function ()
             return Bingo.player.Luck
-        end,
-        4,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="幸运≥4"
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.attributeComparison
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task20=createSingleClass(attribute,task20Options)
+        end,4.00),
+        [ModCallbacks.MC_POST_UPDATE]={
+            attributeComparison
+        }
+    }
+    return obj
+end
 
 -- 任务30：攻击力≥15
-local task30Options={
-    constructor=function (self)
-        local obj=attribute:new(true,
-        30,
-        function ()
+local function task30()
+    local obj={
+        task=tasks_new(true,30,taskDescriptionList[30]),
+        detailedTaskPart=attributeOption(function ()
             return Bingo.player.Damage
-        end,
-        15.00,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="攻击力≥15"
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.attributeComparison
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task30=createSingleClass(attribute,task30Options)
+        end,15.00),
+        [ModCallbacks.MC_POST_UPDATE]={
+            attributeComparison
+        }
+    }
+    return obj
+end
 
 -- 任务51：弹速≥1.8
-local task51Options={
-    constructor=function (self)
-        local obj=attribute:new(true,
-        51,
-        function ()
+local function task51()
+    local obj={
+        task=tasks_new(true,51,taskDescriptionList[51]),
+        detailedTaskPart=attributeOption(function ()
             return Bingo.player.ShotSpeed
-        end,
-        1.8,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="弹速≥1.8"
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.attributeComparison
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task51=createSingleClass(attribute,task51Options)
+        end,1.80),
+        [ModCallbacks.MC_POST_UPDATE]={
+            attributeComparison
+        }
+    }
+    return obj
+end
 
 -- 任务55：移速等于2.0
-local task55Options={
-    constructor=function (self)
-        local obj=attribute:new(true,
-        55,
-        function ()
+local function task55()
+    local obj={
+        task=tasks_new(true,55,taskDescriptionList[55]),
+        detailedTaskPart=attributeOption(function ()
             return Bingo.player.MoveSpeed
-        end,
-        2.00,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="移速等于2.0"
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.attributeComparison
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task55=createSingleClass(attribute,task55Options)
+        end,2.00),
+        [ModCallbacks.MC_POST_UPDATE]={
+            attributeComparison
+        }
+    }
+    return obj
+end
 
 ---------------------------------------------
 
@@ -1078,89 +1115,66 @@ local task55=createSingleClass(attribute,task55Options)
 -- 构造函数参数说明：
 --   map: 该任务是否在图上
 --   index: 该任务的索引（如任务1索引则为1）
---   targetPickUp: 目标掉落
+--   targetPickup: 目标掉落
 --   TARGET_NUM: 属性的目标数值
-local pickUpsOption={
-    constructor=function (self,map,index,targetPickup,targetNum,type_,type1_)
-        local obj=tasks:new(map,index,type_,type1_)
-        obj.targetPickUp=targetPickup
-        obj.TARGET_NUM=targetNum
-        setmetatable(obj,self)
-        return obj
-    end,
-    methods={
-        pickUpComprison=function (self)
-            self.achieveCount=self.targetPickUp(Bingo.player)
-            tasks.checkTaskIfAchived(self)
-        end
+local function pickUpsOption(targetPickup,targetNum)
+    local obj={
+        targetPickup=targetPickup,
+        TARGET_NUM=targetNum,
+        achieveCount=0
     }
-}
-local pickUps=createSingleClass(tasks,pickUpsOption)
+    return obj
+end
+
+local function pickUpComprison(task)
+    task.detailedTaskPart.achieveCount=task.detailedTaskPart.targetPickup()
+    checkTaskIfAchived(task)
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
 
 -- pickUps 的子类，都为具体的任务
 
 -- 任务11：钥匙数量≥30
-local task11Options={
-    constructor=function (self)
-        local obj=pickUps:new(true,
-        11,
-        Bingo.player.GetNumKeys,
-        30,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="钥匙数量≥30"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForPickUps(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task11=createSingleClass(pickUps,task11Options)
+local function task11()
+    local obj={
+        task=tasks_new(true,11,taskDescriptionList[11]),
+        detailedTaskPart=pickUpsOption(function ()
+            return Bingo.player:GetNumKeys()
+        end,30),
+        [ModCallbacks.MC_POST_UPDATE]={
+            pickUpComprison
+        }
+    }
+    return obj
+end
 
 -- 任务12：金币数量≥99
-local task12Options={
-    constructor=function (self)
-        local obj=pickUps:new(true,
-        12,
-        Bingo.player.GetNumCoins,
-        99,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="金币数量≥99"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForPickUps(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task12=createSingleClass(pickUps,task12Options)
+local function task12()
+    local obj={
+        task=tasks_new(true,12,taskDescriptionList[12]),
+        detailedTaskPart=pickUpsOption(function ()
+            return Bingo.player:GetNumCoins()
+        end),
+        [ModCallbacks.MC_POST_UPDATE]={
+            pickUpComprison
+        }
+    }
+    return obj
+end
 
 -- 任务13：炸弹数量≥30
-local task13Options={
-    constructor=function (self)
-        local obj=pickUps:new(true,
-        13,
-        Bingo.player.GetNumBombs,
-        30,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="炸弹数量≥30"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForPickUps(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task13=createSingleClass(pickUps,task13Options)
+local function task13()
+    local obj={
+        task=tasks_new(true,13,taskDescriptionList[13]),
+        detailedTaskPart=pickUpsOption(function ()
+            return Bingo.player:GetNumBombs()
+        end,30),
+        [ModCallbacks.MC_POST_UPDATE]={
+            pickUpComprison
+        }
+    }
+    return obj
+end
 
 ---------------------------------------------
 
@@ -1171,140 +1185,102 @@ local task13=createSingleClass(pickUps,task13Options)
 --   index: 该任务的索引（如任务1索引则为1）
 --   targetHeart: 目标属性的方法
 --   TARGET_NUM: 属性的目标数值
-local heartsOption={
-    constructor=function (self,map,index,heart,targetNum,type_,type1_)
-        local obj=tasks:new(map,index,type_,type1_)
-        obj.targetHeart=heart
-        obj.TARGET_NUM=targetNum
-        setmetatable(obj,self)
-        return obj
-    end,
-    methods={
-        heartComparison=function (self)
-            self.achieveCount=self.targetHeart()
-            tasks.checkTaskIfAchived(self)
-        end
+local function heartsOption(targetHeart,targetNum)
+    local obj={
+        targetHeart=targetHeart,
+        TARGET_NUM=targetNum,
+        achieveCount=0
     }
-}
-local hearts=createSingleClass(tasks,heartsOption)
+    return obj
+end
+
+local function heartComparison(task)
+    task.detailedTaskPart.achieveCount=task.detailedTaskPart.targetHeart()
+    checkTaskIfAchived(task)
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
 
 -- hearts 的子类，都为具体的任务
 
 -- 任务16：碎心数量≥4
-local task16Options={
-    constructor=function (self)
-        local obj=hearts:new(true,
-        16,
-        function ()
+local function task16()
+    local obj={
+        task=tasks_new(true,16,taskDescriptionList[16]),
+        detailedTaskPart=heartsOption(function ()
             return Bingo.player:GetBrokenHearts()
-        end,
-        4,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="碎心数量≥4"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForHearts(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task16=createSingleClass(hearts,task16Options)
+        end,4),
+        [ModCallbacks.MC_POST_UPDATE]={
+            heartComparison
+        }
+    }
+    return obj
+end
 
 -- 任务26：有两排血量
-local task26Options={
-    constructor=function (self)
-        local obj=hearts:new(true,
-        26,
-        function ()
-            return Bingo.player:GetMaxHearts()+Bingo.player:GetSoulHearts()+
-                Bingo.player:GetBoneHearts()*2
-        end,
-        24,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="有完整两排血量"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForHearts(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task26=createSingleClass(hearts,task26Options)
+local function task26()
+    local obj = {
+        task = tasks_new(true, 26, taskDescriptionList[26]),
+        detailedTaskPart = heartsOption(function()
+            return (Bingo.player:GetMaxHearts() + Bingo.player:GetSoulHearts() +
+                Bingo.player:GetBoneHearts() * 2) / 2
+        end, 12),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            heartComparison
+        }
+    }
+    return obj
+end
 
 -- 任务19：同时拥有魂心、黑心和红心
-local task19Options={
-    constructor=function (self)
-        local obj=hearts:new(true,
-        19,
-        function ()
-            local heartsCount=0
-            if Bingo.player:GetHearts()>=1 then
-                heartsCount=heartsCount+1
+local function task19()
+    local obj = {
+        task = tasks_new(true, 19, taskDescriptionList[19]),
+        detailedTaskPart = heartsOption(function()
+            local heartsCount = 0
+            if Bingo.player:GetHearts() >= 1 then
+                heartsCount = heartsCount + 1
             end
-            local blackheartsNum=(function (blackHearts)
-                local sum=0
-                if blackHearts==0 then
+            local blackheartsNum = (function(blackHearts)
+                local sum = 0
+                if blackHearts == 0 then
                     return 0
                 end
-                while blackHearts>0 do
-                    if blackHearts%2==1 then
-                        sum=sum+1
+                while blackHearts > 0 do
+                    if blackHearts % 2 == 1 then
+                        sum = sum + 1
                     end
-                    blackHearts=math.floor(blackHearts/2)
+                    blackHearts = math.floor(blackHearts / 2)
                 end
                 return sum
             end)(Bingo.player:GetBlackHearts())
-            if blackheartsNum>=1 then
-                heartsCount=heartsCount+1
+            if blackheartsNum >= 1 then
+                heartsCount = heartsCount + 1
             end
-            if Bingo.player:GetSoulHearts()-blackheartsNum*2>=1 then
-                heartsCount=heartsCount+1
+            if Bingo.player:GetSoulHearts() - blackheartsNum * 2 >= 1 then
+                heartsCount = heartsCount + 1
             end
             return heartsCount
-        end,
-        3,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="同时拥有魂心、黑心和红心"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForHearts(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task19=createSingleClass(hearts,task19Options)
+        end, 3),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            heartComparison
+        }
+    }
+    return obj
+end
 
 -- 任务53：拥有至少6个心之容器
-local task53Options={
-    constructor=function (self)
-        local obj=hearts:new(true,
-        53,
-        function ()
-            return Bingo.player:GetMaxHearts()
-        end,
-        12,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="拥有至少6个心之容器"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForHearts(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task53=createSingleClass(hearts,task53Options)
+local function task53()
+    local obj={
+        task=tasks_new(true,53,taskDescriptionList[53]),
+        detailedTaskPart=heartsOption(function ()
+            return Bingo.player:GetMaxHearts()/2
+        end,6),
+        [ModCallbacks.MC_POST_UPDATE]={
+            heartComparison
+        }
+    }
+    return obj
+end
 
 ---------------------------------------------
 
@@ -1316,97 +1292,77 @@ local task53=createSingleClass(hearts,task53Options)
 --   targetEntities: 目标实体
 --   variant: 目标实体变种清单（包含白名单和黑名单）
 --   TARGET_NUM: 实体的目标数值
-local entitiesOption={
-    constructor=function (self,map,index,entities,variant,targetNum,type_,type1_)
-        local obj=tasks:new(map,index,type_,type1_)
-        obj.targetEntities=entities
-        obj.variant=variant
-        obj.TARGET_NUM=targetNum
-        setmetatable(obj,self)
-        return obj
-    end,
-    methods={
-        isInWhiteList=function (self,entityVariant)
-            if self.variant.whiteList~=nil then
-                for _, value in ipairs(self.variant.whiteList) do
-                    if entityVariant==value then
-                        return true
-                    end
-                end
-                return false
+local function entitiesOption(entities,variant,targetNum)
+    local obj={
+        targetEntities=entities,
+        variant=variant,
+        TARGET_NUM=targetNum,
+        achieveCount=0
+    }
+    return obj
+end
+
+local function isInWhiteList(task, entityVariant)
+    if task.detailedTaskPart.variant.whiteList ~= nil then
+        for _, value in ipairs(task.detailedTaskPart.variant.whiteList) do
+            if entityVariant == value then
+                return true
             end
-        end,
-        isInBlackList=function (self,entityVariant)
-            if self.variant.blackList~=nil then
-                for _, value in ipairs(self.variant.blackList) do
-                    if entityVariant==value then
-                        return true
-                    end
-                end
-                return false
+        end
+        return false
+    end
+end
+
+local function isInBlackList(task, entityVariant)
+    if task.detailedTaskPart.variant.blackList ~= nil then
+        for _, value in ipairs(task.detailedTaskPart.variant.blackList) do
+            if entityVariant == value then
+                return true
             end
-        end,
-        entitiesComparison=function (self)
-            local entities=Isaac.GetRoomEntities()
+        end
+        return false
+    end
+end
+
+local function entitiesComparison(task)
+                local entities=Isaac.GetRoomEntities()
             local entitiesCount=0
             for _, value in ipairs(entities) do
-                if value.Type==self.targetEntities and ((self:isInWhiteList(value.Variant)~=nil and self:isInWhiteList(value.Variant)) 
-                or ((self:isInBlackList(value.Variant))~=nil and not self:isInBlackList(value.Variant))) then
+                if value.Type==task.detailedTaskPart.targetEntities and ((isInWhiteList(task,value.Variant)~=nil
+                and isInWhiteList(task,value.Variant)) 
+                or ((isInBlackList(task,value.Variant))~=nil and not isInBlackList(task,value.Variant))) then
                     entitiesCount=entitiesCount+1
                 end
             end
-            self.achieveCount=entitiesCount
-            tasks.checkTaskIfAchived(self)
-        end
-    }
-}
-local entities=createSingleClass(tasks,entitiesOption)
+            task.detailedTaskPart.achieveCount=entitiesCount
+            checkTaskIfAchived(task)
+end
 
 -- entities 的子类，都为具体的任务
 
 -- 任务18：单个房间内有6个道具底座
-local task18Options={
-    constructor=function (self)
-        local obj=entities:new(true,
-        18,
-        EntityType.ENTITY_PICKUP,
-        {whiteList={100}},
-        6,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="单个房间内有6个道具底座"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForEntities(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task18=createSingleClass(entities,task18Options)
+local function task18()
+    local obj={
+        task=tasks_new(true,18,taskDescriptionList[18]),
+        detailedTaskPart=entitiesOption(EntityType.ENTITY_PICKUP,{whiteList={100}},6),
+        [ModCallbacks.MC_POST_UPDATE]={
+            entitiesComparison
+        }
+    }
+    return obj
+end
 
 -- 任务37：可见跟班的数量达到10个
-local task37Options={
-    constructor=function (self)
-        local obj=entities:new(true,
-        37,
-        EntityType.ENTITY_FAMILIAR,
-        {blackList={43,73,201,237,228,220}},
-        10,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="可见跟班的数量达到10个"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForEntities(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task37=createSingleClass(entities,task37Options)
+local function task37()
+    local obj={
+        task=tasks_new(true,37,taskDescriptionList[37]),
+        detailedTaskPart=entitiesOption(EntityType.ENTITY_FAMILIAR,{blackList={43,73,201,237,228,220}},10),
+        [ModCallbacks.MC_POST_UPDATE]={
+            entitiesComparison
+        }
+    }
+    return obj
+end
 
 ---------------------------------------------
 
@@ -1417,57 +1373,46 @@ local task37=createSingleClass(entities,task37Options)
 --   index: 该任务的索引（如任务1索引则为1）
 --   targetGridEntities: 目标实体的哈希表
 --   TARGET_NUM: 实体的目标数值
-local gridEntityOption={
-    constructor=function (self,map,index,gridEntities,targetNum,type_,type1_)
-        local obj=tasks:new(map,index,type_,type1_)
-        obj.targetGridEntities=gridEntities
-        obj.TARGET_NUM=targetNum
-        obj.achieveCount=0
-        obj.gridEntitiesMap={}
-        setmetatable(obj,self)
-        return obj
-    end,
-    methods={
-        isGridEntitiesDestroyed=function (self)
-            for i = 0, 1000, 1 do
-                if self.isAchieved then
-                    break
-                end
-                local gridEntity=Bingo.game:GetLevel():GetCurrentRoom():GetGridEntity(i)
-                if gridEntity~=nil and self.targetGridEntities[gridEntity.Desc.Type]~=nil and
-                gridEntity.State==2 and (self.gridEntitiesMap[GetPtrHash(gridEntity)]==nil) then 
-                    self.achieveCount=self.achieveCount+1
-                    self.gridEntitiesMap[GetPtrHash(gridEntity)]=true
-                    tasks.checkTaskIfAchived(self)
-                end
-            end
-        end
+local function gridEntityOption(gridEntities,targetNum)
+    local obj={
+        targetGridEntities=gridEntities,
+        TARGET_NUM=targetNum,
+        achieveCount=0,
+        gridEntitiesMap={}
     }
-}
-local gridEntity=createSingleClass(tasks,gridEntityOption)
+    return obj
+end
+
+local function isGridEntitiesDestroyed(task)
+    for i = 0, 1000, 1 do
+        if task.task.isAchieved then
+            break
+        end
+        local gridEntity=Bingo.game:GetLevel():GetCurrentRoom():GetGridEntity(i)
+        if gridEntity~=nil and task.detailedTaskPart.targetGridEntities[gridEntity.Desc.Type]~=nil and
+        gridEntity.State==2 and (task.detailedTaskPart.gridEntitiesMap[GetPtrHash(gridEntity)]==nil) then 
+            task.detailedTaskPart.achieveCount=task.detailedTaskPart.achieveCount+1
+            task.detailedTaskPart.gridEntitiesMap[GetPtrHash(gridEntity)]=true
+            checkTaskIfAchived(task)
+        end
+    end
+end
+
 
 -- gridEntities 的子类，都为具体的任务
 
 -- 任务27：摧毁x石头或超级x石头1次
-local task27Options={
-    constructor=function (self)
-        local obj=gridEntity:new(true,
-        27,
-        {[GridEntityType.GRID_ROCKT]=true,[GridEntityType.GRID_ROCK_SS]=true},
-        1,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="摧毁x石头或超级x石头1次"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForGridEntities(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task27=createSingleClass(gridEntity,task27Options)
+local function task27()
+    local obj={
+        task=tasks_new(true,27,taskDescriptionList[27]),
+        detailedTaskPart=gridEntityOption({[GridEntityType.GRID_ROCKT]=true,
+        [GridEntityType.GRID_ROCK_SS]=true},1),
+        [ModCallbacks.MC_POST_UPDATE]={
+            isGridEntitiesDestroyed
+        }
+    }
+    return obj
+end
 
 ---------------------------------------------
 
@@ -1477,44 +1422,32 @@ local task27=createSingleClass(gridEntity,task27Options)
 --   map: 该任务是否在图上
 --   index: 该任务的索引（如任务1索引则为1）
 --   targetStateFlag: 目标游戏状态
-local gameStateOption={
-    constructor=function (self,map,index,stateFlag,type_,type1_)
-        local obj=tasks:new(map,index,type_,type1_)
-        obj.targetStateFlag=stateFlag
-        setmetatable(obj,self)
-        return obj
-    end,
-    methods={
-        isTargetStateFlagFinished=function (self)
-            if Bingo.game:GetStateFlag(self.targetStateFlag) then
-                self.isAchieved=true
-            end
-        end
+local function gameStateOption(stateFlag)
+    local obj={
+        targetStateFlag=stateFlag
     }
-}
-local gameState=createSingleClass(tasks,gameStateOption)
+    return obj
+end
+
+local function isTargetStateFlagFinished(task)
+    if Bingo.game:GetStateFlag(task.detailedTaskPart.targetStateFlag) then
+        task.task.isAchieved=true
+    end
+end
 
 -- gameState 的子类，都为具体的任务
 
 -- 任务46：打完Boss Rush
-local task46Options={
-    constructor=function (self)
-        local obj=gameState:new(true,
-        46,
-        GameStateFlag.STATE_BOSSRUSH_DONE,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="打完Boss Rush"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForGameState(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task46=createSingleClass(gameState,task46Options)
+local function task46()
+    local obj={
+        task=tasks_new(true,46,taskDescriptionList[46]),
+        detailedTaskPart=gameStateOption(GameStateFlag.STATE_BOSSRUSH_DONE),
+        [ModCallbacks.MC_POST_UPDATE]={
+            isTargetStateFlagFinished
+        }
+    }
+    return obj
+end
 
 ---------------------------------------------
 
@@ -1524,128 +1457,89 @@ local task46=createSingleClass(gameState,task46Options)
 --   map: 该任务是否在图上
 --   index: 该任务的索引（如任务1索引则为1）
 --   targetPlayerStateMethod: 目标玩家状态的方法
-local playerStateOption={
-    constructor=function (self,map,index,playerStateMethod,type_,type1_)
-        local obj=tasks:new(map,index,type_,type1_)
-        obj.targetPlayerStateMethod=playerStateMethod
-        setmetatable(obj,self)
-        return obj
-    end,
-    methods={
-        isPlayerStateFinished=function (self)
-            self.targetPlayerStateMethod(self)
-        end
+local function playerStateOption(playerStateMethod)
+    local obj={
+        targetPlayerStateMethod=playerStateMethod
     }
-}
-local playerState=createSingleClass(tasks,playerStateOption)
+    return obj
+end
+
+local function isPlayerStateFinished(task)
+    if task.detailedTaskPart.targetPlayerStateMethod() then
+        task.task.isAchieved=true
+    end
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
 
 -- playerState 的子类，都为具体的任务
 
 -- 任务29：获得飞行能力
-local task29Options={
-    constructor=function (self)
-        local playerStateMethod=function (self)
-            if Bingo.player.CanFly then
-                self.isAchieved=true
-            end
-        end
-        local obj=playerState:new(true,
-        29,
-        playerStateMethod,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="获得飞行能力"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForPlayerState(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task29=createSingleClass(playerState,task29Options)
+local function task29()
+    local obj={
+        task=tasks_new(true,29,taskDescriptionList[29]),
+        detailedTaskPart=playerStateOption(function ()
+            return Bingo.player.CanFly
+        end),
+        [ModCallbacks.MC_POST_UPDATE]={
+            isPlayerStateFinished
+        }
+    }
+    return obj
+end
 
 --任务38：触发1次传送
-local task38Options={
-    constructor=function (self)
-        local playerStateMethod=function (self)
-            local playerSprite=Bingo.player:GetSprite()
-            if playerSprite~=nil and playerSprite:IsPlaying("TeleportUp") then
-                self.isAchieved=true
+local function task38()
+    local obj = {
+        task = tasks_new(true, 38, taskDescriptionList[38]),
+        detailedTaskPart = playerStateOption(function()
+            local playerSprite = Bingo.player:GetSprite()
+            if playerSprite ~= nil and playerSprite:IsPlaying("TeleportUp") then
+                return true
             end
-            if playerSprite~=nil and playerSprite:IsPlaying("TeleportDown") then
-                self.isAchieved=true
+            if playerSprite ~= nil and playerSprite:IsPlaying("TeleportDown") then
+                return true
             end
-        end
-        local obj=playerState:new(true,
-        38,
-        playerStateMethod,
-        ModCallbacks.MC_POST_RENDER,
-        nil
-    )
-        obj.description="触发1次传送"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForPlayerState(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task38=createSingleClass(playerState,task38Options)
+        end),
+        [ModCallbacks.MC_POST_RENDER] = {
+            isPlayerStateFinished
+        }
+    }
+    return obj
+end
 
 -- 任务40：拥有硫磺火妈刀组合效果
-local task40Options={
-    constructor=function (self)
-        local playerStateMethod=function (self)
+local function task40()
+    local obj = {
+        task = tasks_new(true, 40, taskDescriptionList[40]),
+        detailedTaskPart = playerStateOption(function()
             if Bingo.player:HasCollectible(CollectibleType.COLLECTIBLE_MOMS_KNIFE) and
-            Bingo.player:HasCollectible(CollectibleType.COLLECTIBLE_BRIMSTONE) then
-                self.isAchieved=true
+                Bingo.player:HasCollectible(CollectibleType.COLLECTIBLE_BRIMSTONE) then
+                return true
             end
-        end
-        local obj=playerState:new(true,
-        40,
-        playerStateMethod,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="拥有硫磺火妈刀组合效果"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForPlayerState(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task40=createSingleClass(playerState,task40Options)
+        end),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            isPlayerStateFinished
+        }
+    }
+    return obj
+end
 
 -- 任务42：头的肤色变成蓝色或者红色
-local task42Options={
-    constructor=function (self)
-        local playerStateMethod=function (self)
-            if Bingo.player:GetHeadColor()==SkinColor.SKIN_BLUE or 
-            Bingo.player:GetHeadColor()==SkinColor.SKIN_RED then
-                self.isAchieved=true
+local function task42()
+    local obj = {
+        task = tasks_new(true, 42, taskDescriptionList[42]),
+        detailedTaskPart = playerStateOption(function()
+            if Bingo.player:GetHeadColor() == SkinColor.SKIN_BLUE or
+                Bingo.player:GetHeadColor() == SkinColor.SKIN_RED then
+                return true
             end
-        end
-        local obj=playerState:new(true,
-        42,
-        playerStateMethod,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="头的肤色变成蓝色或者红色"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForPlayerState(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task42=createSingleClass(playerState,task42Options)
+        end),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            isPlayerStateFinished
+        }
+    }
+    return obj
+end
 
 ---------------------------------------------
 
@@ -1658,75 +1552,63 @@ local task42=createSingleClass(playerState,task42Options)
 --   machineState: 机器的目标状态（1为机器被卖爆，2为机器被摧毁）
 --   targetNum: 目标数量
 --   machineCollectible: 机子卖爆给的道具
-local machineOption={
-    constructor=function (self,map,index,variant,machineState,targetNum,machineCollectible,type_,type1_)
-        local obj=tasks:new(map,index,type_,type1_)
-        obj.variant=variant
-        obj.targetMachineState=machineState
-        obj.achieveCount=0
-        obj.achieveMap={}
-        obj.TARGET_NUM=targetNum
-        obj.machineCollectible=machineCollectible
-        setmetatable(obj,self)
-        return obj
-    end,
-    methods={
-        getMachineState=function (machineSprite,collectible)
-            if machineSprite:IsPlaying("Death")  then
-                return 1
-            end
-            if machineSprite:IsPlaying("Broken") then
-                return 2
-            end
-        end,
-        isEntityInMachinePool=function (self,entity)
-            for _, value in ipairs(self.variant) do
-                if entity.Variant==value then
-                    return true
-                end
-            end
-            return false
-        end,
-        hasMachineInTargetState=function (self)
-            local entityList=Isaac.GetRoomEntities()
-            for _, value in ipairs(entityList) do
-                if ((value.Type==EntityType.ENTITY_SLOT and self:isEntityInMachinePool(value) and
-                self.getMachineState(value:GetSprite(),self.machineCollectible)==self.targetMachineState) or (value.Type==EntityType.ENTITY_PICKUP and
-                value.Variant==100 and value.SubType==self.machineCollectible)) and self.achieveMap[GetPtrHash(value)]==nil then
-                    self.achieveCount=self.achieveCount+1
-                    self.achieveMap[GetPtrHash(value)]=true
-                    tasks.checkTaskIfAchived(self)
-                end
-            end
-        end
+local function machineOption(variant,machineState,targetNum,machineCollectible)
+    local obj={
+        variant=variant,
+        targetMachineState=machineState,
+        TARGET_NUM=targetNum,
+        machineCollectible=machineCollectible,
+        achieveCount=0,
+        achieveMap={}
     }
-}
-local machine=createSingleClass(tasks,machineOption)
+    return obj
+end
+
+local function getMachineState(machineSprite)
+    if machineSprite:IsPlaying("Death") then
+        return 1
+    end
+    if machineSprite:IsPlaying("Broken") then
+        return 2
+    end
+end
+
+local function isEntityInMachinePool(task, entity)
+    for _, value in ipairs(task.detailedTaskPart.variant) do
+        if entity.Variant == value then
+            return true
+        end
+    end
+    return false
+end
+
+local function hasMachineInTargetState(task)
+    local entityList = Isaac.GetRoomEntities()
+    for _, value in ipairs(entityList) do
+        if ((value.Type == EntityType.ENTITY_SLOT and isEntityInMachinePool(task, value) and
+                    getMachineState(value:GetSprite()) == task.detailedTaskPart.targetMachineState) or
+                (value.Type == EntityType.ENTITY_PICKUP and value.Variant == 100 and value.SubType == task.detailedTaskPart.machineCollectible)) and
+            task.detailedTaskPart.achieveMap[GetPtrHash(value)] == nil then
+            task.detailedTaskPart.achieveCount = task.detailedTaskPart.achieveCount + 1
+            task.detailedTaskPart.achieveMap[GetPtrHash(value)] = true
+            checkTaskIfAchived(task)
+        end
+    end
+end
 
 -- machine 的子类，都为具体的任务
 
 -- 任务45：玩爆1台预言机
-local task45Options={
-    constructor=function (self)
-        local obj=machine:new(true,
-        45,
-        {3},
-        1,
-        1,
-        158,
-        ModCallbacks.MC_POST_RENDER,
-        nil
-    )
-        obj.description="玩爆1台预言机"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForMachine(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task45=createSingleClass(machine,task45Options)
+local function task45()
+    local obj={
+        task=tasks_new(true,45,taskDescriptionList[45]),
+        detailedTaskPart=machineOption({45},1,1,158),
+        [ModCallbacks.MC_POST_RENDER]={
+            hasMachineInTargetState
+        }
+    }
+    return obj
+end
 
 ---------------------------------------------
 
@@ -1740,282 +1622,193 @@ local task45=createSingleClass(machine,task45Options)
 --   TARGET_NUM: 特殊房间全部清理的楼层的目标数量
 --   clearType: 房间完成清理的类型（普通房间完成清理和挑战房完成清理不同，1为普通房间，2为挑战房)
 --   isCountByStage: 计算目标数量时是否以楼层数为基准（false则为以房间数为基准）
-local specialRoomsAtStageOption={
-    constructor=function (self,map,index,Stage,room,targetNum,clearType,isCountByStage,type_,type1_)
-        local obj=tasks:new(map,index,type_,type1_)
-        obj.maxStage=Stage
-        obj.targetRoom=room
-        obj.TARGET_NUM=targetNum
-        obj.clearType=clearType
-        obj.isCountByStage=isCountByStage
-        obj.achieveMap={}
-        obj.roomNum=0
-        obj.achieveCount=0
-        obj.signal=0
-        setmetatable(obj,self)
-        return obj
-    end,
-    methods={
-        checkClearType=function (self,room)
-            if self.clearType==1 then
-                return room.Clear
-            else
-                return room.ChallengeDone
-            end
-        end,
-        getHashMapLength=function (map)
-            local length=0
-            for key, value in pairs(map) do
-                length=length+1
-            end
-            return length
-        end,
-        checkSpecialRoomCleard=function (self)
-            if self.maxStage() then
-                local roomList=Bingo.game:GetLevel():GetRooms()
-                for i = 0, roomList.Size-1, 1 do
-                    if (roomList:Get(i).Data.Type==self.targetRoom(i)) and
-                    self:checkClearType(roomList:Get(i)) and self.achieveMap[i]==nil then
-                        self.achieveMap[i]=true
-                    end
-                end
-                if self.isCountByStage and self.getHashMapLength(self.achieveMap)==self.roomNum and
-                 self.isAchieved==false and self.roomNum~=0 and self.signal==0 then
-                    self.achieveCount=self.achieveCount+1
-                    self.signal=1
-                elseif (not self.isCountByStage) and self.isAchieved==false and self.roomNum~=0 then
-                    for key, value in pairs(self.achieveMap) do
-                        if value==true then
-                            self.achieveCount=self.achieveCount+1
-                            self.achieveMap[key]=false
-                        end
-                    end
-                end
-                tasks.checkTaskIfAchived(self)
-            end
-        end,
-        countTargetRoomsNumInNewStage=function (self)
-            local roomList=Bingo.game:GetLevel():GetRooms()
-            local roomNum=0
-            for i = 0, roomList.Size-1, 1 do
-                if roomList:Get(i).Data.Type==self.targetRoom(i) and roomList:Get(i).GridIndex~=-100 then
-                    roomNum=roomNum+1
-                end
-            end
-            self.roomNum=roomNum
-            self.achieveMap={}
-            self.signal=0
-        end
+local function specialRoomsAtStageOption(maxStage,targetRoom,targetNum,clearType,isCountByStage)
+    local obj={
+        maxStage=maxStage,
+        targetRoom=targetRoom,
+        TARGET_NUM=targetNum,
+        clearType=clearType,
+        isCountByStage=isCountByStage,
+        achieveCount=0,
+        achieveMap={},
+        roomNum=0,
+        signal=0
     }
-}
-local specialRoomsAtStage=createSingleClass(tasks,specialRoomsAtStageOption)
+    return obj
+end
+
+local function checkClearType(task, room)
+    if task.detailedTaskPart.clearType == 1 then
+        return room.Clear
+    else
+        return room.ChallengeDone
+    end
+end
+
+local function checkSpecialRoomCleard(task)
+    if task.detailedTaskPart.maxStage() then
+        local roomList = Bingo.game:GetLevel():GetRooms()
+        for i = 0, roomList.Size - 1, 1 do
+            if (roomList:Get(i).Data.Type == task.detailedTaskPart.targetRoom(i)) and
+                checkClearType(task,roomList:Get(i)) and task.detailedTaskPart.achieveMap[i] == nil then
+                task.detailedTaskPart.achieveMap[i] = true
+            end
+        end
+        if task.detailedTaskPart.isCountByStage and getHashMapLength(task.detailedTaskPart.achieveMap) == task.detailedTaskPart.roomNum and
+            task.task.isAchieved == false and task.detailedTaskPart.roomNum ~= 0 and task.detailedTaskPart.signal == 0 then
+            task.detailedTaskPart.achieveCount = task.detailedTaskPart.achieveCount + 1
+            task.detailedTaskPart.signal = 1
+        elseif (not task.detailedTaskPart.isCountByStage) and task.task.isAchieved == false and task.detailedTaskPart.roomNum ~= 0 then
+            for key, value in pairs(task.detailedTaskPart.achieveMap) do
+                if value == true then
+                    task.detailedTaskPart.achieveCount = task.detailedTaskPart.achieveCount + 1
+                    task.detailedTaskPart.achieveMap[key] = false
+                end
+            end
+        end
+        checkTaskIfAchived(task)
+    end
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
+
+local function countTargetRoomsNumInNewStage(task)
+    local roomList = Bingo.game:GetLevel():GetRooms()
+    local roomNum = 0
+    for i = 0, roomList.Size - 1, 1 do
+        if roomList:Get(i).Data.Type == task.detailedTaskPart.targetRoom(i) and roomList:Get(i).GridIndex ~= -100 then
+            roomNum = roomNum + 1
+        end
+    end
+    task.detailedTaskPart.roomNum = roomNum
+    task.detailedTaskPart.achieveMap = {}
+    task.detailedTaskPart.signal = 0
+end
 
 -- specialRoomsAtStage 的子类，都为具体的任务
 
 -- 任务49：前两层所有普通房间全探索
-local task49Options={
-
-    constructor=function (self)
-        local obj=specialRoomsAtStage:new(true,
-        49,
-        function ()
-            local stage=Bingo.game:GetLevel():GetStage()
+local function task49()
+    local obj={
+        task=tasks_new(true,49,taskDescriptionList[49]),
+        detailedTaskPart=specialRoomsAtStageOption(function ()
+                        local stage=Bingo.game:GetLevel():GetStage()
             local stageType=Bingo.game:GetLevel():GetStageType()
             if (stage==1 or (stage==2 and not (stageType==4 or stageType==5)))then
                 return true
             end
-        end,
-        function ()
+        end,function ()
             return RoomType.ROOM_DEFAULT
-        end,
-        2,
-        1,
-        true,
-        ModCallbacks.MC_POST_UPDATE,
-        ModCallbacks.MC_POST_NEW_LEVEL
-    )
-        obj.description="前两层所有普通房间全探索"
-        obj.conflictTasks={56}
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForSpecialRoomsAtStage1(obj)
-        end
-        obj:countTargetRoomsNumInNewStage()
-        obj.callBackfunction1=function ()
-            Bingo:taskForSpecialRoomsAtStage2(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task49=createSingleClass(specialRoomsAtStage,task49Options)
+        end,2,1,true),
+        [ModCallbacks.MC_POST_UPDATE]={
+            checkSpecialRoomCleard
+        },
+        [ModCallbacks.MC_POST_NEW_LEVEL]={
+            countTargetRoomsNumInNewStage
+        }
+    }
+    return obj
+end
 
 -- 任务57：打2个Boss挑战房
-local task57Options={
-    constructor=function (self)
-        local obj=specialRoomsAtStage:new(true,
-        57,
-        function ()
+local function task57()
+    local obj={
+        task=tasks_new(true,57,taskDescriptionList[57]),
+        detailedTaskPart=specialRoomsAtStageOption(function ()
             return Bingo.game:GetLevel():HasBossChallenge()
-        end,
-        function ()
+        end,function ()
             return RoomType.ROOM_CHALLENGE
-        end,
-        2,
-        2,
-        false,
-        ModCallbacks.MC_POST_UPDATE,
-        ModCallbacks.MC_POST_NEW_LEVEL
-    )
-        obj.description="打2个Boss挑战房"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForSpecialRoomsAtStage1(obj)
-        end
-        obj:countTargetRoomsNumInNewStage()
-        obj.callBackfunction1=function ()
-            Bingo:taskForSpecialRoomsAtStage2(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task57=createSingleClass(specialRoomsAtStage,task57Options)
+        end,2,2,false),
+        [ModCallbacks.MC_POST_UPDATE]={
+            checkSpecialRoomCleard
+        },
+        [ModCallbacks.MC_POST_NEW_LEVEL]={
+            countTargetRoomsNumInNewStage
+        }
+    }
+    return obj
+end
 
 -- 任务60：进入5个商店房
-local task60Options={
-    constructor=function (self)
-        local obj=specialRoomsAtStage:new(true,
-        60,
-        function ()
+local function task60()
+    local obj={
+        task=tasks_new(true,60,taskDescriptionList[60]),
+        detailedTaskPart=specialRoomsAtStageOption(function ()
             return true
-        end,
-        function ()
+        end,function ()
             return RoomType.ROOM_SHOP
-        end,
-        5,
-        1,
-        false,
-        ModCallbacks.MC_POST_UPDATE,
-        ModCallbacks.MC_POST_NEW_LEVEL
-    )
-        obj.description="进入5个商店房"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForSpecialRoomsAtStage1(obj)
-        end
-        obj:countTargetRoomsNumInNewStage()
-        obj.callBackfunction1=function ()
-            Bingo:taskForSpecialRoomsAtStage2(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task60=createSingleClass(specialRoomsAtStage,task60Options)
+        end,5,1,false),
+        [ModCallbacks.MC_POST_UPDATE]={
+            checkSpecialRoomCleard
+        },
+        [ModCallbacks.MC_POST_NEW_LEVEL]={
+            countTargetRoomsNumInNewStage
+        }
+    }
+    return obj
+end
 
 -- 任务61：进入5个宝箱房
-local task61Options={
-    constructor=function (self)
-        local obj=specialRoomsAtStage:new(true,
-        61,
-        function ()
+local function task61()
+    local obj={
+        task=tasks_new(true,61,taskDescriptionList[61]),
+        detailedTaskPart=specialRoomsAtStageOption(function ()
             return true
-        end,
-        function ()
+        end,function ()
             return RoomType.ROOM_TREASURE
-        end,
-        5,
-        1,
-        false,
-        ModCallbacks.MC_POST_UPDATE,
-        ModCallbacks.MC_POST_NEW_LEVEL
-    )
-        obj.description="进入5个宝箱房"
-        setmetatable(obj,self)
-        obj.conflictTasks={15}
-        obj.callBackfunction=function ()
-            Bingo:taskForSpecialRoomsAtStage1(obj)
-        end
-        obj:countTargetRoomsNumInNewStage()
-        obj.callBackfunction1=function ()
-            Bingo:taskForSpecialRoomsAtStage2(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task61=createSingleClass(specialRoomsAtStage,task61Options)
+        end,5,1,false),
+        [ModCallbacks.MC_POST_UPDATE]={
+            checkSpecialRoomCleard
+        },
+        [ModCallbacks.MC_POST_NEW_LEVEL]={
+            countTargetRoomsNumInNewStage
+        }
+    }
+    return obj
+end
 
 -- 任务62：镜子世界中所有房间全探索
-local task62Options={
-    constructor=function (self)
-        local obj=specialRoomsAtStage:new(true,
-        62,
-        function ()
+local function task62()
+    local obj={
+        task=tasks_new(true,62,taskDescriptionList[62]),
+        detailedTaskPart=specialRoomsAtStageOption(function ()
             return Bingo.game:GetRoom():IsMirrorWorld()
-        end,
-        function (i)
-            local roomList=Bingo.game:GetLevel():GetRooms()
+        end,function (i)
+                        local roomList=Bingo.game:GetLevel():GetRooms()
             if roomList:Get(i).Data.Type==RoomType.ROOM_ULTRASECRET then
                 return RoomType.ROOM_NULL
             end
             if i>=roomList.Size/2 then
                 return roomList:Get(i).Data.Type
             end
-        end,
-        1,
-        1,
-        true,
-        ModCallbacks.MC_POST_UPDATE,
-        ModCallbacks.MC_POST_NEW_LEVEL
-    )
-        obj.description="镜子世界中的白房间全探索"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForSpecialRoomsAtStage1(obj)
-        end
-        obj:countTargetRoomsNumInNewStage()
-        obj.callBackfunction1=function ()
-            Bingo:taskForSpecialRoomsAtStage2(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task62=createSingleClass(specialRoomsAtStage,task62Options)
+        end,1,1,true),
+        [ModCallbacks.MC_POST_UPDATE]={
+            checkSpecialRoomCleard
+        },
+        [ModCallbacks.MC_POST_NEW_LEVEL]={
+            countTargetRoomsNumInNewStage
+        }
+    }
+    return obj
+end
 
 -- 任务79：进入刺房3次
-local task79Options={
-    constructor=function (self)
-        local obj=specialRoomsAtStage:new(true,
-        79,
-        function ()
+local function task79()
+    local obj={
+        task=tasks_new(true,79,taskDescriptionList[79]),
+        detailedTaskPart=specialRoomsAtStageOption(function ()
             return true
-        end,
-        function ()
+        end,function ()
             return RoomType.ROOM_CURSE
-        end,
-        3,
-        1,
-        false,
-        ModCallbacks.MC_POST_UPDATE,
-        ModCallbacks.MC_POST_NEW_LEVEL
-    )
-        obj.description="进入3个刺房"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForSpecialRoomsAtStage1(obj)
-        end
-        obj:countTargetRoomsNumInNewStage()
-        obj.callBackfunction1=function ()
-            Bingo:taskForSpecialRoomsAtStage2(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task79=createSingleClass(specialRoomsAtStage,task79Options)
+        end,3,1,false),
+        [ModCallbacks.MC_POST_UPDATE]={
+            checkSpecialRoomCleard
+        },
+        [ModCallbacks.MC_POST_NEW_LEVEL]={
+            countTargetRoomsNumInNewStage
+        }
+    }
+    return obj
+end
 
 ---------------------------------------------
 
@@ -2028,470 +1821,295 @@ local task79=createSingleClass(specialRoomsAtStage,task79Options)
 --   beggarState: 目标乞丐的状态（1为被喂饱，2为被摧毁）
 --   TARGET_NUM: 目标数量
 --   currentRoom: 当前房间
-local beggarOption={
-    constructor=function (self,map,index,variant,beggarState,targetNum,type_,type1_)
-        local obj=tasks:new(map,index,type_,type1_)
-        obj.variant=variant
-        obj.targetBeggarState=beggarState
-        obj.achieveCount=0
-        obj.achieveMap={}
-        obj.TARGET_NUM=targetNum
-        obj.currentRoom=0
-        setmetatable(obj,self)
-        return obj
-    end,
-    methods={
-        getBeggarState=function (beggar)
-            if beggar~=nil and beggar:GetSprite():IsPlaying("Teleport") then
-                print("sb")
-                return 1
-            elseif beggar==nil then
-                print("ok")
-                return 2
-            end
-            return 0
-        end,
-        isEntityInBeggarPool=function (self,entity)
-            for _, value in ipairs(self.variant) do
-                if entity.Variant==value then
-                    return true
-                end
-            end
-            return false
-        end,
-        hasSatisfyBeggar=function (self)
-            local roomIndex=Bingo.game:GetLevel():GetCurrentRoomDesc().ListIndex
-            if self.currentRoom~=roomIndex then
-                self.currentRoom=roomIndex
-                self.achieveMap={}
-            end
-            local entityList=Isaac.GetRoomEntities()
-            for _, value in ipairs(entityList) do
-                if value.Type==EntityType.ENTITY_SLOT and self:isEntityInBeggarPool(value) and
-                 self.achieveMap[GetPtrHash(value)]==nil then
-                    self.achieveMap[GetPtrHash(value)]={EntityPtr(value),true}
-                end
-            end
-            for key, value in pairs(self.achieveMap) do
-                if value[2]==true and self.getBeggarState(value[1].Ref)~=nil and
-                 self.getBeggarState(value[1].Ref)==self.targetBeggarState then
-                    self.achieveCount=self.achieveCount+1
-                    tasks.checkTaskIfAchived(self);
-                    (self.achieveMap[key])[2]=false
-                 elseif value[2]==true and self.getBeggarState(value[1].Ref)~=nil and
-                 self.getBeggarState(value[1].Ref)~=self.targetBeggarState and self.getBeggarState(value[1].Ref)~=0 then
-                    (self.achieveMap[key])[2]=false;
-                end
-            end
-        end
+local function beggarOption(variant,beggarState,targetNum)
+    local obj={
+        variant=variant,
+        targetBeggarState=beggarState,
+        TARGET_NUM=targetNum,
+        achieveCount=0,
+        achieveMap={},
+        currentRoom=0
     }
-}
-local beggar=createSingleClass(tasks,beggarOption)
+    return obj
+end
+
+local function getBeggarState(beggar)
+    if beggar ~= nil and beggar:GetSprite():IsPlaying("Teleport") then
+        print("sb")
+        return 1
+    elseif beggar == nil then
+        print("ok")
+        return 2
+    end
+    return 0
+end
+
+local function isEntityInBeggarPool(task, entity)
+    for _, value in ipairs(task.detailedTaskPart.variant) do
+        if entity.Variant == value then
+            return true
+        end
+    end
+    return false
+end
+
+local function hasSatisfyBeggar(task)
+    local roomIndex = Bingo.game:GetLevel():GetCurrentRoomDesc().ListIndex
+    if task.detailedTaskPart.currentRoom ~= roomIndex then
+        task.detailedTaskPart.currentRoom = roomIndex
+        task.detailedTaskPart.achieveMap = {}
+    end
+    local entityList = Isaac.GetRoomEntities()
+    for _, value in ipairs(entityList) do
+        if value.Type == EntityType.ENTITY_SLOT and isEntityInBeggarPool(value) and
+            task.detailedTaskPart.achieveMap[GetPtrHash(value)] == nil then
+            task.detailedTaskPart.achieveMap[GetPtrHash(value)] = { EntityPtr(value), true }
+        end
+    end
+    for key, value in pairs(task.detailedTaskPart.achieveMap) do
+        if value[2] == true and getBeggarState(value[1].Ref) ~= nil and
+            getBeggarState(value[1].Ref) == task.detailedTaskPart.targetBeggarState then
+            task.detailedTaskPart.achieveCount = task.detailedTaskPart.achieveCount + 1
+            checkTaskIfAchived(task);
+            (task.detailedTaskPart.achieveMap[key])[2] = false
+        elseif value[2] == true and getBeggarState(value[1].Ref) ~= nil and
+            getBeggarState(value[1].Ref) ~= task.detailedTaskPart.targetBeggarState and getBeggarState(value[1].Ref) ~= 0 then
+            (task.detailedTaskPart.achieveMap[key])[2] = false;
+        end
+    end
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
 
 -- beggar 的子类，都是具体的任务
 
 -- 任务54：喂饱1个特殊乞丐（除黑乞丐和白乞丐以外的乞丐）
-local task54Options={
-    constructor=function (self)
-        local obj=beggar:new(true,
-        54,
-        {6,7,9,13,15,18},
-        1,
-        1,
-        ModCallbacks.MC_POST_RENDER,
-        nil
-    )
-        obj.description="喂饱1个除黑乞丐和白乞丐以外的乞丐"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForBeggar(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task54=createSingleClass(beggar,task54Options)
+local function task54()
+    local obj={
+        task=tasks_new(true,54,taskDescriptionList[54]),
+        detailedTaskPart=beggarOption({6,7,9,13,15,18},1,1),
+        [ModCallbacks.MC_POST_RENDER]={
+            hasSatisfyBeggar
+        }
+    }
+    return obj
+end
 
 -- 任务65：喂饱2个乞丐
-local task65Options={
-    constructor=function (self)
-        local obj=beggar:new(true,
-        65,
-        slotPoolOfBeggar,
-        1,
-        2,
-        ModCallbacks.MC_POST_RENDER,
-        nil
-    )
-        obj.description="喂饱2个乞丐"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForBeggar(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task65=createSingleClass(beggar,task65Options)
+local function task65()
+    local obj={
+        task=tasks_new(true,65,taskDescriptionList[65]),
+        detailedTaskPart=beggarOption(slotPoolOfBeggar,1,2),
+        [ModCallbacks.MC_POST_RENDER]={
+            hasSatisfyBeggar
+        }
+    }
+    return obj
+end
 
 -- 任务68：摧毁3个乞丐
-local task68Options={
-    constructor=function (self)
-        local obj=beggar:new(true,
-        68,
-        slotPoolOfBeggar,
-        2,
-        3,
-        ModCallbacks.MC_POST_RENDER,
-        nil
-    )
-        obj.description="摧毁3个乞丐"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForBeggar(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task68=createSingleClass(beggar,task68Options)
+local function task68()
+    local obj={
+        task=tasks_new(true,68,taskDescriptionList[68]),
+        detailedTaskPart=beggarOption(slotPoolOfBeggar,2,3),
+        [ModCallbacks.MC_POST_RENDER]={
+            hasSatisfyBeggar
+        }
+    }
+    return obj
+end
 
 -- 任务73：喂饱1个抽奖乞丐
-local task73Options={
-    constructor=function (self)
-        local obj=beggar:new(true,
-        73,
-        {6,15},
-        1,
-        1,
-        ModCallbacks.MC_POST_RENDER,
-        nil
-    )
-        obj.description="喂饱1个抽奖乞丐"
-        setmetatable(obj,self)
-        obj.callBackfunction=function ()
-            Bingo:taskForBeggar(obj)
-        end
-        obj:setTaskForCallback()
-        return obj
-    end
-}
-local task73=createSingleClass(beggar,task73Options)
+local function task73()
+    local obj={
+        task=tasks_new(true,73,taskDescriptionList[73]),
+        detailedTaskPart=beggarOption({6,15},1,1),
+        [ModCallbacks.MC_POST_RENDER]={
+            hasSatisfyBeggar
+        }
+    }
+    return obj
+end
 
 ---------------------------------------------
 
 -- 子类20 other
-
--- 构造函数参数说明：
---   map: 该任务是否在图上
---   index: 该任务的索引（如任务1索引则为1）
---   method: 该任务的逻辑方法
-local otherOption={
-    constructor=function (self,map,index,method,type_,type1_)
-        local obj=tasks:new(map,index,type_,type1_)
-        obj.method=method
-        setmetatable(obj,self)
-        return obj
-    end,
-    methods={
-        taskMethod=function (self)
-            self.method(self)
-            tasks.updateBingoMapConfigAndRemoveCallBack(self)
-        end
-    }
-}
-local other=createSingleClass(tasks,otherOption)
+local function otherOption()
+    local obj={}
+    return obj
+end
 
 -- other 的子类，都为具体的任务
 
 -- 任务34：献祭踩单个刺踩到第10下
-local task34Options={
-    constructor=function (self)
-        local method=function (self)
-            for i = 0, 1000, 1 do
-                if self.isAchieved then
-                    break
-                end
-                local gridEntity=Bingo.game:GetLevel():GetCurrentRoom():GetGridEntity(i)
-                if gridEntity~=nil and gridEntity.Desc.Type==GridEntityType.GRID_SPIKES then
-                    self.achieveCount=gridEntity.VarData
-                    tasks.checkTaskIfAchived(self)
-                end
-            end
+local function task34Method(task)
+    for i = 0, 1000, 1 do
+        if task.task.isAchieved then
+            break
         end
-        local obj=other:new(true,
-        34,
-        method,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="献祭踩单个刺踩到第10下"
-        obj.TARGET_NUM=10
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.taskMethod
-        obj:setTaskForCallback()
-        return obj
+        local gridEntity = Bingo.game:GetLevel():GetCurrentRoom():GetGridEntity(i)
+        if gridEntity ~= nil and gridEntity.Desc.Type == GridEntityType.GRID_SPIKES then
+            task.detailedTaskPart.achieveCount = gridEntity.VarData
+            checkTaskIfAchived(task)
+        end
     end
-}
-local task34=createSingleClass(other,task34Options)
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
+
+local function task34()
+    local obj={
+        task=tasks_new(true,34,taskDescriptionList[34]),
+        detailedTaskPart=otherOption(),
+        [ModCallbacks.MC_POST_UPDATE]={
+            task34Method
+        }
+    }
+    obj.detailedTaskPart.achieveCount=0
+    return obj
+end
 
 -- 任务35：在1分钟内击杀第一层的boss
-local task35Options={
-    constructor=function (self)
-        local method=function (self)
-            local roomList=Bingo.game:GetLevel():GetRooms()
-            local stage=Bingo.game:GetLevel():GetStage()
-            local stageType=Bingo.game:GetLevel():GetStageType()
-            if Bingo.game.TimeCounter<=1800 and roomList:Get(0).Clear and stage==LevelStage.STAGE1_1 and
-            (stageType~=StageType.STAGETYPE_REPENTANCE and stageType~=StageType.STAGETYPE_REPENTANCE_B) then
-                self.isAchieved=true
-            end
-        end
-        local obj=other:new(true,
-        35,
-        method,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.description="在1分钟内击杀第一层的boss"
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.taskMethod
-        obj:setTaskForCallback()
-        return obj
+local function task35Method(task)
+    local roomList = Bingo.game:GetLevel():GetRooms()
+    local stage = Bingo.game:GetLevel():GetStage()
+    local stageType = Bingo.game:GetLevel():GetStageType()
+    if Bingo.game.TimeCounter <= 1800 and roomList:Get(0).Clear and stage == LevelStage.STAGE1_1 and
+        (stageType ~= StageType.STAGETYPE_REPENTANCE and stageType ~= StageType.STAGETYPE_REPENTANCE_B) then
+        task.task.isAchieved = true
     end
-}
-local task35=createSingleClass(other,task35Options)
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
+
+local function task35()
+    local obj={
+        task=tasks_new(true,35,taskDescriptionList[35]),
+        detailedTaskPart=otherOption(),
+        [ModCallbacks.MC_POST_UPDATE]={
+            task35Method
+        }
+    }
+    return obj
+end
 
 -- 任务56：第一层不拿任何额外道具（初始携带的不算）
-local task56Options={
-    constructor=function (self)
-        local method=function (self)
-            local stage=Bingo.game:GetLevel():GetStage()
-            local stageType=Bingo.game:GetLevel():GetStageType()
-            if stage==LevelStage.STAGE1_1 and stageType~=StageType.STAGETYPE_REPENTANCE and
-            stageType~=StageType.STAGETYPE_REPENTANCE_B and (Bingo.player.QueuedItem.Item~=nil and Bingo.player.QueuedItem.Item.Type~=ItemType.ITEM_TRINKET) then
-                self.isPickCollectible=true
-            end
-            if (stageType==StageType.STAGETYPE_REPENTANCE or stageType==StageType.STAGETYPE_REPENTANCE_B or
-            stage>=2) and self.isPickCollectible==false then
-                self.isAchieved=true
-            end
-        end
-        local obj=other:new(true,
-        56,
-        method,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.isPickCollectible=false
-        obj.description="第一层不拿除了初始携带的道具以外的任何道具"
-        obj.conflictTasks={49}
-        obj.callBackfunction=obj.taskMethod
-        obj:setTaskForCallback()
-        return obj
+local function task56Method(task)
+    local stage=Bingo.game:GetLevel():GetStage()
+    local stageType=Bingo.game:GetLevel():GetStageType()
+    if stage==LevelStage.STAGE1_1 and stageType~=StageType.STAGETYPE_REPENTANCE and
+    stageType~=StageType.STAGETYPE_REPENTANCE_B and (Bingo.player.QueuedItem.Item~=nil and Bingo.player.QueuedItem.Item.Type~=ItemType.ITEM_TRINKET) then
+        task.detailedTaskPart.isPickCollectible=true
     end
-}
-local task56=createSingleClass(other,task56Options)
+    if (stageType==StageType.STAGETYPE_REPENTANCE or stageType==StageType.STAGETYPE_REPENTANCE_B or
+    stage>=2) and task.detailedTaskPart.isPickCollectible==false then
+        task.task.isAchieved=true
+    end
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
+
+local function task56AssistanceFunc1(task)
+    local stage=Bingo.game:GetLevel():GetStage()
+    if stage==LevelStage.STAGE1_1 then
+        task.task.isPickCollectible=false
+    end
+end
+
+local function task56()
+    local obj={
+        task=tasks_new(true,56,taskDescriptionList[56]),
+        detailedTaskPart=otherOption(),
+        [ModCallbacks.MC_POST_UPDATE]={
+            task56Method
+        },
+        [ModCallbacks.MC_POST_NEW_LEVEL]={
+            task56AssistanceFunc1
+        }
+    }
+    obj.detailedTaskPart.isPickCollectible=false
+    return obj
+end
 
 -- 任务64：连续3个房间不清理
-local task64Options={
-    constructor=function (self)
-        local method=function (self)
-            local lastRoom=Bingo.game:GetLevel():GetLastRoomDesc()
-            if lastRoom~=nil and (not lastRoom.Clear) and
-            self.achieveMap[lastRoom.ListIndex]==nil then
-                self.achieveMap[lastRoom.ListIndex]=true
-            elseif lastRoom~=nil and lastRoom.Clear then
-                self.achieveMap={}
-            end
-            if self.isAchieved==false then
-                self.achieveCount=getHashMapLength(self.achieveMap)
-            end
-            tasks.checkTaskIfAchived(self)
-        end
-        local obj=other:new(true,
-        64,
-        method,
-        ModCallbacks.MC_POST_UPDATE,
-        nil
-    )
-        obj.achieveMap={}
-        obj.achieveCount=0
-        obj.TARGET_NUM=3
-        obj.description="连续3个房间不清理"
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.taskMethod
-        obj:setTaskForCallback()
-        return obj
+local function task64Method(task)
+    local lastRoom = Bingo.game:GetLevel():GetLastRoomDesc()
+    if lastRoom ~= nil and (not lastRoom.Clear) and
+        task.detailedTaskPart.achieveMap[lastRoom.ListIndex] == nil then
+        task.detailedTaskPart.achieveMap[lastRoom.ListIndex] = true
+    elseif lastRoom ~= nil and lastRoom.Clear then
+        task.detailedTaskPart.achieveMap = {}
     end
-}
-local task64=createSingleClass(other,task64Options)
+    if task.task.isAchieved == false then
+        task.detailedTaskPart.achieveCount = getHashMapLength(task.detailedTaskPart.achieveMap)
+    end
+    checkTaskIfAchived(task)
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
+
+local function task64()
+    local obj={
+        task=tasks_new(true,64,taskDescriptionList[64]),
+        detailedTaskPart=otherOption(),
+        [ModCallbacks.MC_POST_UPDATE]={
+            task64Method
+        }
+    }
+    obj.detailedTaskPart.achieveCount=0
+    obj.detailedTaskPart.achieveMap={}
+    return obj
+end
 
 -- 任务 66：在某层不打这一层boss并跳层
-local task66Options={
-    constructor=function (self)
-        local method=function (self)
-            if Bingo.game:GetLevel():GetRooms():Get(0).Clear then
-                self.isClearBoss=true
-            end
-        end
-        local obj=other:new(true,
-        66,
-        method,
-        ModCallbacks.MC_POST_UPDATE,
-        ModCallbacks.MC_POST_NEW_LEVEL
-    )
-        obj.isClearBoss=false;
-        obj.description="在某层不打这一层boss并跳层"
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.taskMethod
-        obj.callBackfunction1=function ()
-            if not obj.isClearBoss then
-                obj.isAchieved=true
-            end
-            obj.isClearBoss=false
-        end
-        obj:setTaskForCallback()
-        return obj
+local function task66Method(task)
+    if Bingo.game:GetLevel():GetRooms():Get(0).Clear then
+        task.detailedTaskPart.isClearBoss = true
     end
-}
-local task66=createSingleClass(other,task66Options)
+end
+
+local function task66AssistanceFunc1(task)
+    if not task.detailedTaskPart.isClearBoss then
+        task.task.isAchieved = true
+    end
+    task.detailedTaskPart.isClearBoss = false
+end
+
+local function task66()
+    local obj={
+        task=tasks_new(true,66,taskDescriptionList[66]),
+        detailedTaskPart=otherOption(),
+        [ModCallbacks.MC_POST_UPDATE]={
+            task66Method
+        },
+        [ModCallbacks.MC_POST_NEW_LEVEL]={
+            task66AssistanceFunc1
+        }
+    }
+    obj.detailedTaskPart.isClearBoss=false
+    return obj
+end
 
 -- 任务70：完成全支线路线，以离开陵墓2层为完成
-local task70Options={
-    constructor=function (self)
-        local method=function (self)
-            if Bingo.game:GetLevel():GetStage()>=7 and self.isOnbranchLine then
-                self.isAchieved=true
-            end
-            if Bingo.game:GetLevel():GetStageType()<=3 and Bingo.game:GetLevel():GetStage()>1 then
-                self.isOnbranchLine=false
-            end
-            if(Bingo.game:GetLevel():GetStage()==1 and Bingo.game:GetLevel():GetStageType()<=3) then
-                self.isOnbranchLine=true
-            end
-        end
-        local obj=other:new(true,
-        70,
-        method,
-        ModCallbacks.MC_POST_UPDATE,
-        ModCallbacks.MC_POST_NEW_LEVEL
-    )
-        obj.isOnbranchLine=true
-        obj.description="完成全支线路线，以离开陵墓2层为完成"
-        setmetatable(obj,self)
-        obj.callBackfunction=obj.taskMethod
-        obj.callBackfunction1=function ()
-            obj:method()
-        end
-        obj:setTaskForCallback()
-        return obj
+local function task70Method(task)
+    if Bingo.game:GetLevel():GetStage() >= 7 and task.detailedTaskPart.isOnbranchLine then
+        task.task.isAchieved = true
     end
-}
-local task70=createSingleClass(other,task70Options)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function Bingo:taskForPickUpCollectibles(task)
-    task:isItemInCurrentRoomItemPool()
-    task:updateBingoMapConfigAndRemoveCallBack()
+    if Bingo.game:GetLevel():GetStageType() <= 3 and Bingo.game:GetLevel():GetStage() > 1 then
+        task.detailedTaskPart.isOnbranchLine = false
+    end
+    if (Bingo.game:GetLevel():GetStage() == 1 and Bingo.game:GetLevel():GetStageType() <= 3) then
+        task.detailedTaskPart.isOnbranchLine = true
+    end
 end
 
-function Bingo:taskForHasItems(task)
-    task:hasItemsWithTag()
-    task:updateBingoMapConfigAndRemoveCallBack()
+local function task70()
+    local obj={
+        task=tasks_new(true,70,taskDescriptionList[70]),
+        detailedTaskPart=otherOption(),
+        [ModCallbacks.MC_POST_UPDATE]={
+            task70Method
+        }
+    }
+    obj.detailedTaskPart.isOnbranchLine=true
+    return obj
 end
 
-function Bingo:taskForBosses(task)
-    task:hasKilledBosses()
-    task:updateBingoMapConfigAndRemoveCallBack()
-end
-
-function Bingo:taskForPlayerForms(task)
-    task:hasPlayerForm()
-    task:updateBingoMapConfigAndRemoveCallBack()
-end
-
-function Bingo:taskForAttribute(task)
-    task:attributeComparison()
-    task:updateBingoMapConfigAndRemoveCallBack()
-end
-
-function Bingo:taskForPickUps(task)
-    task:pickUpComprison()
-    task:updateBingoMapConfigAndRemoveCallBack()
-end
-
-function Bingo:taskForHearts(task)
-    task:heartComparison()
-    task:updateBingoMapConfigAndRemoveCallBack()
-end
-
-function Bingo:taskForEntities(task)
-    task:entitiesComparison()
-    task:updateBingoMapConfigAndRemoveCallBack()
-end
-
-function Bingo:taskForGridEntities(task)
-    task:isGridEntitiesDestroyed()
-    task:updateBingoMapConfigAndRemoveCallBack()
-end
-
-function Bingo:taskForGameState(task)
-    task:isTargetStateFlagFinished()
-    task:updateBingoMapConfigAndRemoveCallBack()
-end
-
-function Bingo:taskForPlayerState(task)
-    task:isPlayerStateFinished()
-    task:updateBingoMapConfigAndRemoveCallBack()
-end
-
-function Bingo:taskForMachine(task)
-    task:hasMachineInTargetState()
-    task:updateBingoMapConfigAndRemoveCallBack()
-end
-
-function Bingo:taskForSpecialRoomsAtStage1(task)
-    task:checkSpecialRoomCleard()
-    task:updateBingoMapConfigAndRemoveCallBack()
-end
-function Bingo:taskForSpecialRoomsAtStage2(task)
-    task:countTargetRoomsNumInNewStage()
-end
-
-function Bingo:taskForBeggar(task)
-    task:hasSatisfyBeggar()
-    task:updateBingoMapConfigAndRemoveCallBack()
-end
-
-function Bingo:taskForOther(task)
-    task:taskMethod()
-    task:updateBingoMapConfigAndRemoveCallBack()
-end
 
 
 
@@ -2579,6 +2197,13 @@ return {
     task68=task68,
     task69=task69,
     task70=task70,
-    tasks=tasks,
-    conflictCharacter
+    task71=task71,
+    task72=task72,
+    task73=task73,
+    task74=task74,
+    task75=task75,
+    task76=task76,
+    conflictCharacter,
+    setTaskForCallback=setTaskForCallback,
+    achieveSound=achieveSound
 }

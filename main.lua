@@ -60,7 +60,7 @@ Bingo.taskMargin=Sprite()
 Bingo.taskSelectionPosition={X=0,Y=0}
 Bingo.taskSelectionEnable=false
 Bingo.achieveSound=SFXManager()
-Bingo.TASKS_COUNT=70
+Bingo.TASKS_COUNT=76
 Bingo.randomTasksQueue={}
 Bingo.finishTasksNum=0
 Bingo.longestLineLength=0
@@ -76,8 +76,7 @@ Bingo.keyboard=require("keyboard")
 ---font path---
 local MOD_FOLDER_NAME="bingo_3555711630"
 local CUSTOM_FONT_FILE_PATH="font/eid9/eid9_9px.fnt"
----调试用---
-Bingo.taskSweepCount=0;
+
 ---funtions---
 
 function Bingo.setUserId()
@@ -124,7 +123,7 @@ local function CallbackOnOpen()
         for i = 1, 5, 1 do
             mapMessage.data[i]={}
             for j = 1, 5, 1 do
-                mapMessage.data[i][j]=Bingo.map[i][j].taskIndex
+                mapMessage.data[i][j]=Bingo.map[i][j].task.taskIndex
             end
         end
     end
@@ -154,19 +153,19 @@ local function CallbackOnMessage(message, isBinary)
                 Bingo.gameIsStarted=true
                 Bingo.timeStart=Isaac.GetTime()
             elseif gameStartTable.type=="task_confirmed" then
-                Bingo.map[gameStartTable.data.row+1][gameStartTable.data.col+1].isAchieved=true
-                Bingo.map[gameStartTable.data.row+1][gameStartTable.data.col+1].achieveBy=gameStartTable.data.achieveBy
-                Bingo.map[gameStartTable.data.row+1][gameStartTable.data.col+1].signal1=1
+                Bingo.map[gameStartTable.data.row+1][gameStartTable.data.col+1].task.isAchieved=true
+                Bingo.map[gameStartTable.data.row+1][gameStartTable.data.col+1].task.achieveBy=gameStartTable.data.achieveBy
+                Bingo.map[gameStartTable.data.row+1][gameStartTable.data.col+1].task.signal1=1
                 if gameStartTable.data.achieveBy==Bingo.playerIndex then
-                    Bingo.tasks.tasks.achieveSound:Play(579,20)
-                    Bingo.tasks.tasks.achieveSound:Play(128,1)
+                    Bingo.tasks.achieveSound:Play(579,20)
+                    Bingo.tasks.achieveSound:Play(128,1)
                     local taskX=gameStartTable.data.col
                     local taskY=gameStartTable.data.row
                     print(taskX," ",taskY)
                     Bingo:getMapConfig(taskX,taskY)
                     Bingo.finishTasksNum=Bingo.finishTasksNum+1
                 else
-                    Bingo.tasks.tasks.achieveSound:Play(579,20)
+                    Bingo.tasks.achieveSound:Play(579,20)
                 end
             end
         end
@@ -396,15 +395,15 @@ function Bingo:resetWhenExit(ShouldSave)
         if IsaacSocket and Bingo.ws~=nil then
                 Bingo.ws.Close(1000,"成功关闭连接")
         end
-        Bingo.mapForMC_POST_UPDATE={}
-        Bingo.mapForMC_POST_RENDER={}
-        Bingo.mapForMC_POST_NEW_LEVEL={}
         if next(Bingo.map,nil)~=nil then
             for i = 1, 5, 1 do
                 for j = 1, 5, 1 do
                     Bingo.map[i][j]=nil;
                 end
             end
+        end
+        for key, value in pairs(Bingo.mapForCallBacks) do
+            Bingo.mapForCallBacks[key]={}
         end
         Bingo.map={}
         collectgarbage("collect")
@@ -480,6 +479,49 @@ function Bingo:setTimeCounterContinued()
 end
 
 
+---------- 任务函数加入回调相关 ----------
+
+
+Bingo.mapForCallBacksFunc = {
+    [ModCallbacks.MC_POST_UPDATE] = function()
+        if Bingo.gameIsStarted then
+            for key, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_POST_UPDATE]) do
+                for index, valueFunc in ipairs(value[2]) do
+                    valueFunc(value[1])
+                end
+            end
+        end
+    end,
+    [ModCallbacks.MC_POST_RENDER] = function()
+        if Bingo.gameIsStarted then
+            for key, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_POST_RENDER]) do
+                for index, valueFunc in ipairs(value[2]) do
+                    valueFunc(value[1])
+                end
+            end
+        end
+    end,
+    [ModCallbacks.MC_POST_NEW_LEVEL] = function()
+        if Bingo.gameIsStarted then
+            for key, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_POST_NEW_LEVEL]) do
+                for index, valueFunc in ipairs(value[2]) do
+                    valueFunc(value[1])
+                end
+            end
+        end
+    end
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -533,35 +575,6 @@ function Bingo:showGameOverInfo()
     end
 end
 
-function Bingo:taskOfMC_POST_UPDATE()
-    if Bingo.gameIsStarted then
-        for _, value in ipairs(Bingo.mapForMC_POST_UPDATE) do
-            if value~=nil then
-                value()
-            end
-        end
-    end
-end
-
-function Bingo:taskOfMC_POST_RENDER()
-    if Bingo.gameIsStarted then
-        for _, value in ipairs(Bingo.mapForMC_POST_RENDER) do
-            if value~=nil then
-                value()
-            end
-        end
-    end
-end
-
-function Bingo:taskOfMC_POST_NEW_LEVEL()
-    if Bingo.gameIsStarted then
-        for _, value in ipairs(Bingo.mapForMC_POST_NEW_LEVEL) do
-            if value~=nil then
-                value()
-            end
-        end
-    end
-end
 
 --检索节点之间是否矛盾
 local function isTasksConflicted(taskRandomIndex,taskExistIndex)
@@ -600,14 +613,14 @@ local function isTaskNoProblem(row,col,taskIndex,mode)
     -- 检查完整生成的行
     for i = 1, row-1, 1 do
         for j = 1, 5, 1 do
-            if taskIndex==Bingo.map[i][j].taskIndex then
+            if taskIndex==Bingo.map[i][j].task.taskIndex then
                 return false
             end
         end
     end
     -- 检查残缺的行
     for i = 1, col-1, 1 do
-        if taskIndex==Bingo.map[row][i].taskIndex then
+        if taskIndex==Bingo.map[row][i].task.taskIndex then
             return false
         end
     end
@@ -651,10 +664,14 @@ function Bingo:createBingoMap()
                     break
                 end
             end
-            Bingo.map[row][col]=Bingo.tasks["task"..taskIndex]:new()
-            Bingo.map[row][col].taskIcon:Load("gfx/tasks/task"..taskIndex..".anm2",true)
-            Bingo.map[row][col].renderXOffset=col-1
-            Bingo.map[row][col].renderYOffset=row-1
+            Bingo.map[row][col]=Bingo.tasks["task"..taskIndex]()
+            if Bingo.map[row][col]==nil then
+                print("nil")
+            end
+            Bingo.map[row][col].task.taskIcon:Load("gfx/tasks/task"..taskIndex..".anm2",true)
+            Bingo.map[row][col].task.renderXOffset=col-1
+            Bingo.map[row][col].task.renderYOffset=row-1
+            Bingo.tasks.setTaskForCallback(Bingo.map[row][col])
         end
     end
     --如果当前生成节点所在的位置在主对角线上，检索有无矛盾元素
@@ -665,7 +682,7 @@ function Bingo:getMapConfig(taskX,taskY)
     local maxLength=0
     --row
     for i = 1, 5, 1 do
-        if Bingo.map[i][taskX+1].isAchieved and Bingo.map[i][taskX+1].achieveBy==Bingo.playerIndex then
+        if Bingo.map[i][taskX+1].task.isAchieved and Bingo.map[i][taskX+1].task.achieveBy==Bingo.playerIndex then
             length=length+1
         else 
             length=0
@@ -679,7 +696,7 @@ function Bingo:getMapConfig(taskX,taskY)
     length=0
     --col
     for i = 1, 5, 1 do
-        if Bingo.map[taskY+1][i].isAchieved and Bingo.map[taskY+1][i].achieveBy==Bingo.playerIndex then
+        if Bingo.map[taskY+1][i].task.isAchieved and Bingo.map[taskY+1][i].task.achieveBy==Bingo.playerIndex then
             length=length+1
         else 
             length=0
@@ -694,7 +711,7 @@ function Bingo:getMapConfig(taskX,taskY)
     --diag
     if taskX==taskY then
         for i = 1, 5, 1 do
-            if Bingo.map[i][i].isAchieved and Bingo.map[i][i].achieveBy==Bingo.playerIndex then
+            if Bingo.map[i][i].task.isAchieved and Bingo.map[i][i].task.achieveBy==Bingo.playerIndex then
                 length=length+1
             else 
                 length=0
@@ -708,7 +725,7 @@ function Bingo:getMapConfig(taskX,taskY)
         length=0
     elseif taskX+taskY==4 then
         for i = 1, 5, 1 do
-            if Bingo.map[6-i][i].isAchieved and Bingo.map[6-i][i].achieveBy==Bingo.playerIndex then
+            if Bingo.map[6-i][i].task.isAchieved and Bingo.map[6-i][i].task.achieveBy==Bingo.playerIndex then
                 length=length+1
             else 
                 length=0
@@ -746,10 +763,14 @@ function Bingo:tasksIconRender()
         if not Bingo.taskSelectionEnable then
             for indexRow, valueRow in ipairs(Bingo.map) do
                 for indexCol, valueCol in ipairs(valueRow) do
-                    valueCol.taskIcon:SetFrame("task",0)
-                    valueCol.taskIcon:Render(Vector(Bingo.renderPositionOfTasks.X+10*valueCol.renderXOffset+1,Bingo.renderPositionOfTasks.Y+10*valueCol.renderYOffset+1))
-                    if valueCol.isAchieved and valueCol.achieveBy~=-1 then
-                        local achieveBy=valueCol.achieveBy
+                    if valueCol.task==nil then
+                        print("nil")
+                        break
+                    end
+                    valueCol.task.taskIcon:SetFrame("task",0)
+                    valueCol.task.taskIcon:Render(Vector(Bingo.renderPositionOfTasks.X+10*valueCol.task.renderXOffset+1,Bingo.renderPositionOfTasks.Y+10*valueCol.task.renderYOffset+1))
+                    if valueCol.task.isAchieved and valueCol.task.achieveBy~=-1 then
+                        local achieveBy=valueCol.task.achieveBy
                         if Bingo.enableCooperatedMode then
                             if achieveBy==2 then
                                 achieveBy=1
@@ -758,19 +779,19 @@ function Bingo:tasksIconRender()
                             end
                         end
                         Bingo.finishIcon:SetFrame("Finish"..achieveBy,0)
-                        Bingo.finishIcon:Render(Vector(Bingo.renderPositionOfTasks.X+10*valueCol.renderXOffset,Bingo.renderPositionOfTasks.Y+10*valueCol.renderYOffset))
+                        Bingo.finishIcon:Render(Vector(Bingo.renderPositionOfTasks.X+10*valueCol.task.renderXOffset,Bingo.renderPositionOfTasks.Y+10*valueCol.task.renderYOffset))
                     end
                 end
             end
         else
             for indexRow, valueRow in ipairs(Bingo.map) do
                 for indexCol, valueCol in ipairs(valueRow) do
-                    valueCol.taskIcon:SetFrame("task",0)
-                    valueCol.taskIcon:Render(Vector(Bingo.renderPositionOfTasks.X+26*valueCol.renderXOffset+1,Bingo.renderPositionOfTasks.Y+26*valueCol.renderYOffset+1))
+                    valueCol.task.taskIcon:SetFrame("task",0)
+                    valueCol.task.taskIcon:Render(Vector(Bingo.renderPositionOfTasks.X+26*valueCol.task.renderXOffset+1,Bingo.renderPositionOfTasks.Y+26*valueCol.task.renderYOffset+1))
                     Bingo.taskMargin:SetFrame("margin",0);
-                    Bingo.taskMargin:Render(Vector(Bingo.renderPositionOfTasks.X+26*valueCol.renderXOffset+1-7,Bingo.renderPositionOfTasks.Y+26*valueCol.renderYOffset+1-7))
-                    if valueCol.isAchieved and valueCol.achieveBy~=-1 then
-                        local achieveBy=valueCol.achieveBy
+                    Bingo.taskMargin:Render(Vector(Bingo.renderPositionOfTasks.X+26*valueCol.task.renderXOffset+1-7,Bingo.renderPositionOfTasks.Y+26*valueCol.task.renderYOffset+1-7))
+                    if valueCol.task.isAchieved and valueCol.task.achieveBy~=-1 then
+                        local achieveBy=valueCol.task.achieveBy
                         if Bingo.enableCooperatedMode then
                             if achieveBy==2 then
                                 achieveBy=1
@@ -779,7 +800,7 @@ function Bingo:tasksIconRender()
                             end
                         end
                         Bingo.finishIcon:SetFrame("Finish"..achieveBy,0)
-                        Bingo.finishIcon:Render(Vector(Bingo.renderPositionOfTasks.X+26*valueCol.renderXOffset,Bingo.renderPositionOfTasks.Y+26*valueCol.renderYOffset))
+                        Bingo.finishIcon:Render(Vector(Bingo.renderPositionOfTasks.X+26*valueCol.task.renderXOffset,Bingo.renderPositionOfTasks.Y+26*valueCol.task.renderYOffset))
                     end
                 end
             end
@@ -816,16 +837,16 @@ function Bingo:tasksIconRender()
         end
         local taskSelected=Bingo.map[Bingo.taskSelectionPosition.Y+1][Bingo.taskSelectionPosition.X+1]
         if Bingo.taskSelectionEnable then
-            if taskSelected.achieveCount~=nil and taskSelected.TARGET_NUM~=nil then
-                Bingo.startMenu:DrawStringScaledUTF8(taskSelected.description.." "..taskSelected.achieveCount.."/"..taskSelected.TARGET_NUM,Bingo.renderPositionOfTasks.X+130,Bingo.renderPositionOfTasks.Y,1.6,1.6,KColor(1,1,1,1))
+            if taskSelected.detailedTaskPart.achieveCount~=nil and taskSelected.detailedTaskPart.TARGET_NUM~=nil then
+                Bingo.startMenu:DrawStringScaledUTF8(taskSelected.task.description.." "..taskSelected.detailedTaskPart.achieveCount.."/"..taskSelected.detailedTaskPart.TARGET_NUM,Bingo.renderPositionOfTasks.X+130,Bingo.renderPositionOfTasks.Y,1.6,1.6,KColor(1,1,1,1))
             else
-            Bingo.startMenu:DrawStringScaledUTF8(taskSelected.description,Bingo.renderPositionOfTasks.X+130,Bingo.renderPositionOfTasks.Y,1.6,1.6,KColor(1,1,1,1))
+            Bingo.startMenu:DrawStringScaledUTF8(taskSelected.task.description,Bingo.renderPositionOfTasks.X+130,Bingo.renderPositionOfTasks.Y,1.6,1.6,KColor(1,1,1,1))
             end
         else
-            if taskSelected.achieveCount~=nil and taskSelected.TARGET_NUM~=nil then
-                Bingo.startMenu:DrawStringUTF8(taskSelected.description.." "..taskSelected.achieveCount.."/"..taskSelected.TARGET_NUM,Bingo.renderPositionOfTasks.X+80,Bingo.renderPositionOfTasks.Y,KColor(1,1,1,1))
+            if taskSelected.detailedTaskPart.achieveCount~=nil and taskSelected.detailedTaskPart.TARGET_NUM~=nil then
+                Bingo.startMenu:DrawStringUTF8(taskSelected.task.description.." "..taskSelected.detailedTaskPart.achieveCount.."/"..taskSelected.detailedTaskPart.TARGET_NUM,Bingo.renderPositionOfTasks.X+80,Bingo.renderPositionOfTasks.Y,KColor(1,1,1,1))
             else
-                Bingo.startMenu:DrawStringUTF8(taskSelected.description,Bingo.renderPositionOfTasks.X+80,Bingo.renderPositionOfTasks.Y,KColor(1,1,1,1))
+                Bingo.startMenu:DrawStringUTF8(taskSelected.task.description,Bingo.renderPositionOfTasks.X+80,Bingo.renderPositionOfTasks.Y,KColor(1,1,1,1))
             end
         end
     end
@@ -867,21 +888,12 @@ function Bingo:restartKeyUse()
         Bingo.gameIsOver=2
     end
 end
---just for test
 
 
---[[function Bingo:test()
-    if test~=nil then
-        test.taskIcon:SetFrame("task",0)
-        test.taskIcon:Render(Vector(100,100))
-        if test.isAchieved then
-            Bingo.finishIcon:SetFrame("Finish1",0)
-            Bingo.finishIcon:Render(Vector(100,100))
-        end    
-    end
-end 
 
-Bingo:AddCallback(ModCallbacks.MC_POST_RENDER,Bingo.test)]]
+
+
+
 
 math.randomseed(Random())
 Bingo.userId=Bingo.setUserId()
@@ -907,9 +919,9 @@ Bingo:AddCallback(ModCallbacks.MC_POST_RENDER,Bingo.tasksIconRender)
 Bingo:AddCallback(ModCallbacks.MC_POST_UPDATE,Bingo.killFinalBosses)
 
 ---for tasks---
-Bingo:AddCallback(ModCallbacks.MC_POST_UPDATE,Bingo.taskOfMC_POST_UPDATE)
-Bingo:AddCallback(ModCallbacks.MC_POST_RENDER,Bingo.taskOfMC_POST_RENDER)
-Bingo:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL,Bingo.taskOfMC_POST_NEW_LEVEL)
+for key, value in pairs(Bingo.mapForCallBacksFunc) do
+    Bingo:AddCallback(key,value)
+end
 
 Bingo:AddCallback(ModCallbacks.MC_USE_ITEM,Bingo.isUseVoid,CollectibleType.COLLECTIBLE_VOID)
 Bingo:AddCallback(ModCallbacks.MC_USE_CARD,Bingo.isUseBlackRune,Card.RUNE_BLACK)
