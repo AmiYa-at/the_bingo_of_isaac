@@ -60,7 +60,7 @@ Bingo.taskMargin=Sprite()
 Bingo.taskSelectionPosition={X=0,Y=0}
 Bingo.taskSelectionEnable=false
 Bingo.achieveSound=SFXManager()
-Bingo.TASKS_COUNT=80
+Bingo.TASKS_COUNT=81
 Bingo.randomTasksQueue={}
 Bingo.finishTasksNum=0
 Bingo.longestLineLength=0
