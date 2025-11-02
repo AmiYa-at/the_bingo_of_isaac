@@ -890,11 +890,6 @@ function Bingo:restartKeyUse()
 end
 
 
-
-
-
-
-
 math.randomseed(Random())
 Bingo.userId=Bingo.setUserId()
 

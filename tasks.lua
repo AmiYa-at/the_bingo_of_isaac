@@ -1558,7 +1558,7 @@ local function machineOption(variant,machineState,targetNum,machineCollectible)
         variant=variant,
         targetMachineState=machineState,
         TARGET_NUM=targetNum,
-        machineCollectible=machineCollectible,
+        machineCollectibles=machineCollectible,
         achieveCount=0,
         achieveMap={}
     }
@@ -1566,7 +1566,7 @@ local function machineOption(variant,machineState,targetNum,machineCollectible)
 end
 
 local function getMachineState(machineSprite)
-    if machineSprite:IsPlaying("Death") then
+    if (machineSprite:IsFinished("Wiggle") and machineSprite:IsPlaying("Death")) or (machineSprite:IsFinished("Wiggle") and machineSprite:IsPlaying("Broken")) then
         return 1
     end
     if machineSprite:IsPlaying("Broken") then
@@ -1586,15 +1586,10 @@ end
 local function hasMachineInTargetState(task)
     local entityList = Isaac.GetRoomEntities()
     for _, value in ipairs(entityList) do
-        local position=nil
-        if value.Type == EntityType.ENTITY_SLOT and isEntityInMachinePool(task, value) then
-            position=value.PositionOffset
-        end
         if ((value.Type == EntityType.ENTITY_SLOT and isEntityInMachinePool(task, value) and
-                    getMachineState(value:GetSprite()) == task.detailedTaskPart.targetMachineState) or
-                (value.Type == EntityType.ENTITY_PICKUP and value.Variant == 100 and value.SubType == task.detailedTaskPart.machineCollectible)) and
+                    getMachineState(value:GetSprite()) == task.detailedTaskPart.targetMachineState)) and
             task.detailedTaskPart.achieveMap[GetPtrHash(value)] == nil then
-            print(value:IsDead())
+            print(value:GetSprite():IsFinished("Wiggle"))
             task.detailedTaskPart.achieveCount = task.detailedTaskPart.achieveCount + 1
             task.detailedTaskPart.achieveMap[GetPtrHash(value)] = true
             checkTaskIfAchived(task)
@@ -1609,7 +1604,7 @@ end
 local function task45()
     local obj={
         task=tasks_new(true,45,taskDescriptionList[45]),
-        detailedTaskPart=machineOption({3},1,1,158),
+        detailedTaskPart=machineOption({3},1,1,{158}),
         [ModCallbacks.MC_POST_RENDER]={
             hasMachineInTargetState
         }
