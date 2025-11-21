@@ -51,6 +51,9 @@ local itemTagOfCollectiblesWithChargeBar={
 local slotPoolOfBeggar={
     4,5,6,7,9,13,15,18
 }
+local pickupPoolOfChest={
+    50,51,52,53,54,55,56,57,58,60,360,390
+}
 local entityPoolOfSins={
     {type=EntityType.ENTITY_SLOTH},
     {type=EntityType.ENTITY_LUST},
@@ -71,13 +74,15 @@ local conflictCharacter={
     c10={19,26,29,34,36,50,53}, -- 表罗
     c4={19,42,53},  --表蓝人
     c7={29},  --表az
+    c8={59},
     c12={19,53},  --黑犹大
     c14={16,19,26,53},  --表店长
     c16={19,26,29,53},  --表骨哥
+    c17={19,26,29,53},  --表骨哥魂
     c18={19},  --表伯大尼
     c24={19,53},  --里犹大
-    c25={19,42,53},  --里蓝人
-    c31={19,26,29,34,36,53},  --里罗
+    c25={19,42,53,100},  --里蓝人
+    c31={19,26,29,34,36,5,79,81},  --里罗
     c33={16,19,26,53},  --里店长
     c36={19,53},  --里伯大尼
     c35={19,29,53},  --里骨哥
@@ -115,8 +120,8 @@ local taskDescriptionList={
     [19]="同时拥有魂心、黑心和红心",
     [20]="幸运≥4",
     [21]="集齐两个钥匙碎片",
-    [22]="击败小蓝人",
-    [23]="击败以撒",
+    [22]="击败以撒",
+    [23]="击败小蓝人",
     [24]="击败凹凸",
     [25]="书套",
     [26]="拥有完整两排血量",
@@ -127,8 +132,8 @@ local taskDescriptionList={
     [31]="击败见证者",
     [32]="完成一次矿层追逐战（神庙逃亡）",
     [33]="天使套",
-    [34]="在1分钟内击杀第一层的boss",
-    [35]="献祭踩单个刺踩到第10下",
+    [34]="献祭踩单个刺踩到第10下",
+    [35]="在1分钟内击杀第一层的boss",
     [36]="拥有5个带食物标签的道具（大胃王）",
     [37]="同时有10个跟班",
     [38]="触发1次传送",
@@ -177,7 +182,23 @@ local taskDescriptionList={
     [81]="累计受到50滴血伤害（1滴血为半颗心）",
     [82]="累计使用卡牌、符文和魂石10次",
     [83]="连续3层探索所有隐藏房和超级隐藏房",
-    [84]="拥有卖血袋和血袋"
+    [84]="拥有卖血袋和血袋",
+    [85]="清空商店所有商品2次",
+    [86]="宝宝套",
+    [87]="击败大幽灵",
+    [88]="在商店累计买5个道具",
+    [89]="累计使用药丸15次",
+    [90]="射程≥15",
+    [91]="对怪物累计造成5000点伤害",
+    [92]="累计杀死200只怪物",
+    [93]="击败2个天启boss",
+    [94]="累计使用主动15次",
+    [95]="拾取1个红箱子开出来的道具",
+    [96]="拾取2个箱子开出来的道具",
+    [97]="炸1个梳妆台",
+    [98]="只用非胎儿博士的炸弹或笑脸炸弹斩杀1个Boss",
+    [99]="累计消耗15把钥匙",
+    [100]="累计消耗20个炸弹"
 }
 
 
@@ -262,7 +283,7 @@ local function updateBingoMapConfigAndRemoveCallBack(task)
                 --print("json字符串",jsonStr)
                 Bingo.ws.Send(jsonStr,false)
             end
-            task.detailedTaskPart.signal1=1
+            task.task.signal1=1
         end
         if Bingo.gameMode==0 then
             task.task.achieveBy=0
@@ -661,7 +682,7 @@ end
 local function task84()
     local obj = {
         task = tasks_new(true, 84, taskDescriptionList[84]),
-        detailedTaskPart = hasItemsOption({ collectibles = { 119, 135 } }),
+        detailedTaskPart = hasItemsOption({ collectibles = { 119, 135 } },2),
         [ModCallbacks.MC_POST_UPDATE] = {
             hasItemsWithTag
         }
@@ -866,71 +887,11 @@ end
 -- 任务69：击败3个七宗罪boss
 local function task69()
     local obj = {
-        task = tasks_new(true, 67, taskDescriptionList[69]),
+        task = tasks_new(true, 69, taskDescriptionList[69]),
         detailedTaskPart = bossesOption(entityPoolOfSins, 3),
         [ModCallbacks.MC_POST_UPDATE] = {
             hasKilledBosses
         }
-    }
-    return obj
-end
-
--- 任务71辅助函数
-local function task71AssistanceFunc1(task)
-    if Bingo.game:GetLevel():GetStage() == 1 then
-        task.detailedTaskPart.achieveCount = 0
-        task.signal = 0
-    end
-    if Bingo.game:GetStateFlag(GameStateFlag.STATE_BOSSRUSH_DONE) and
-        task.signal == 0 then
-        task.detailedTaskPart.achieveCount = task.detailedTaskPart.achieveCount + 1
-        checkTaskIfAchived(task)
-        task.signal = 1
-    end
-end
--- 任务71：Boss Rush和凹凸连打
-local function task71()
-    local obj = {
-        task = tasks_new(true, 71, taskDescriptionList[71]),
-        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_HUSH, variant = 0 } }, 2),
-        signal = 0,
-        [ModCallbacks.MC_POST_UPDATE] = {
-            hasKilledBosses,
-            task71AssistanceFunc1
-        },
-        conflictTasks = { 31, 52 }
-    }
-    return obj
-end
-
--- 任务72辅助函数
-local function task72AssistanceFunc1(task)
-    if Bingo.game:GetLevel():GetStage() == 1 then
-        task.detailedTaskPart.achieveCount = 0
-        task.signal = 0
-    end
-    if Bingo.game:GetStateFlag(GameStateFlag.STATE_BLUEWOMB_DONE) and task.signal == 0 then
-        task.detailedTaskPart.achieveCount = task.detailedTaskPart.achieveCount + 1
-        checkTaskIfAchived(task)
-        task.signal = 1
-    end
-    if Bingo.game:GetStateFlag(GameStateFlag.STATE_BLUEWOMB_DONE) and (Bingo.game:GetLevel():GetStage() ~= LevelStage.STAGE4_3 or
-            Bingo.game:GetLevel():GetStage() ~= LevelStage.STAGE7) then
-        task.detailedTaskPart.achieveCount = 0
-        checkTaskIfAchived(task)
-    end
-end
--- 任务72：打完凹凸后直接打百变怪
-local function task72()
-    local obj = {
-        task = tasks_new(true, 72, taskDescriptionList[72]),
-        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_DELIRIUM, variant = 0 } }, 2),
-        signal = 0,
-        [ModCallbacks.MC_POST_UPDATE] = {
-            hasKilledBosses,
-            task72AssistanceFunc1
-        },
-        conflictTasks = { 22, 23, 28, 31, 41, 47, 52 }
     }
     return obj
 end
@@ -959,6 +920,23 @@ local function task87()
     }
     return obj
 end
+
+-- 任务93: 击败2个天启boss
+local function task93()
+    local obj={
+        task=tasks_new(true,93,taskDescriptionList[93]),
+        detailedTaskPart=bossesOption({{type=EntityType.ENTITY_FAMINE},{type=EntityType.ENTITY_PESTILENCE},
+                                    {type=EntityType.ENTITY_WAR,variant=10},{type=EntityType.ENTITY_DEATH,variant=30},
+                                    {type=EntityType.ENTITY_WAR,variant=1},{type=EntityType.ENTITY_BEAST,variant=10},
+                                    {type=EntityType.ENTITY_BEAST,variant=20},{type=EntityType.ENTITY_BEAST,variant=30},
+                                    {type=EntityType.ENTITY_BEAST,variant=40}},2),
+        [ModCallbacks.MC_POST_UPDATE]={
+            hasKilledBosses
+        }
+    }
+    return obj
+end
+
 
 ---------------------------------------------
 
@@ -1056,6 +1034,7 @@ local function task63()
     return obj
 end
 
+--任务86: 宝宝套
 local function task86()
     local obj={
         task=tasks_new(true,86,taskDescriptionList[86]),
@@ -1168,7 +1147,7 @@ local function task90()
     local obj={
         task=tasks_new(true,90,taskDescriptionList[90]),
         detailedTaskPart=attributeOption(function ()
-            return Bingo.player.TearRange
+            return Bingo.player.TearRange/40
         end,15.00),
         [ModCallbacks.MC_POST_UPDATE]={
             attributeComparison
@@ -1617,10 +1596,10 @@ end
 
 -- 子类12 machine
 
--- 构造函数参数说明：
---   Variant: 目标机器的变种
---   targetMachineState: 机器的目标状态（1为机器被卖爆，2为机器被摧毁）
---   TARGET_NUM: 目标数量
+-- 参数说明：
+--  Variant: 目标机器的变种
+--  targetMachineState: 机器的目标状态（1为机器被卖爆，2为机器被摧毁）
+--  TARGET_NUM: 目标数量
 local function machineOption(variant,machineState,targetNum)
     local obj={
         variant=variant,
@@ -1785,13 +1764,14 @@ local function checkSpecialRoomCleard(task)
     if task.detailedTaskPart.maxStage() then
         local roomList = Bingo.game:GetLevel():GetRooms()
         for i = 0, roomList.Size - 1, 1 do
-            if type(task.detailedTaskPart.targetRoom(i)) == "table" then
+            local room=task.detailedTaskPart.targetRoom(i)
+            if type(room) == "table" then
                 if checkElementInTable(roomList:Get(i).Data.Type, task.detailedTaskPart.targetRoom(i)) and
                     checkClearType(task, roomList:Get(i)) and task.detailedTaskPart.achieveMap[i] == nil then
                     task.detailedTaskPart.achieveMap[i] = true
                 end
             else
-                if type(task.detailedTaskPart.targetRoom(i)) == "number" then
+                if type(room) == "number" then
                     if (roomList:Get(i).Data.Type == task.detailedTaskPart.targetRoom(i)) and
                         checkClearType(task, roomList:Get(i)) and task.detailedTaskPart.achieveMap[i] == nil then
                         task.detailedTaskPart.achieveMap[i] = true
@@ -2127,7 +2107,159 @@ end
 
 ---------------------------------------------
 
--- 子类20 other
+-- 子类20 consumption
+-- 参数说明:
+--  targetPickup: 目标掉落物(请返回1个函数)
+--  TARGET_NUM: 目标掉落物的需求量
+--  achieveCount: 当前该任务完成的量
+--  currentNum: 记录上一刻的目标掉落物的数量
+local function consumptionOption(targetPickup,targetNum)
+    local obj={
+        targetPickup=targetPickup,
+        TARGET_NUM=targetNum,
+        achieveCount=0,
+        currentNum=0,
+    }
+    return obj
+end
+
+local function consumeEnoughPickups(task)
+    local currentNum=task.detailedTaskPart.currentNum
+    local targetPickup=task.detailedTaskPart.targetPickup()
+    if currentNum>targetPickup then
+        task.detailedTaskPart.achieveCount=task.detailedTaskPart.achieveCount+(currentNum-targetPickup)
+    end
+    task.detailedTaskPart.currentNum=targetPickup
+    checkTaskIfAchived(task)
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
+
+-- consumption 的子类，都为具体的任务
+
+-- 任务99: 累计消耗15把钥匙
+local function task99()
+    local obj={
+        task=tasks_new(true,99,taskDescriptionList[99]),
+        detailedTaskPart=consumptionOption(function ()
+            return Bingo.player:GetNumKeys()
+        end,15),
+        [ModCallbacks.MC_POST_UPDATE]={
+            consumeEnoughPickups
+        }
+    }
+    return obj
+end
+
+-- 任务100: 累计消耗20个炸弹
+local function task100()
+    local obj={
+        task=tasks_new(true,100,taskDescriptionList[100]),
+        detailedTaskPart=consumptionOption(function ()
+            return Bingo.player:GetNumBombs()
+        end,20),
+        [ModCallbacks.MC_POST_UPDATE]={
+            consumeEnoughPickups
+        }
+    }
+    return obj
+end
+
+---------------------------------------------
+
+-- 子类21 OpenChest
+-- 参数说明:
+--  variant: 目标箱子变种的表
+--  targetChestState: 目标箱子的状态(1为打开但没给道具,2为打开且给道具)
+local function OpenChestOption(variant,chestState,targetNum)
+    local obj={
+        variant=variant,
+        targetChestState=chestState,
+        TARGET_NUM=targetNum,
+        achieveCount=0,
+        chestPtr={},
+        currentRoom=0
+    }
+    return obj
+end
+
+-- 此函数用于处理房间内的箱子，当玩家进入房间时，收集房间内的所有箱子的信息并储存，用于后面检测开箱逻辑
+local function chestsInCurrentRoom(task,pickup,player,_)
+    local roomIndex=Bingo.game:GetLevel():GetCurrentRoomDesc().ListIndex
+    if task.detailedTaskPart.currentRoom~=roomIndex then
+        task.detailedTaskPart.currentRoom=roomIndex
+        task.detailedTaskPart.chestPtr={}
+    end
+    local entityList=Isaac.GetRoomEntities()
+    for _, value in ipairs(entityList) do
+        -- 检索房间内有没有目标箱子，有就把他的坐标和EntityPtr放入chestPtr内
+        if value.Type==EntityType.ENTITY_PICKUP and checkElementInTable(value.Variant,task.detailedTaskPart.variant) and 
+        (function ()
+            for key, _ in pairs(task.detailedTaskPart.chestPtr) do
+                if key == GetPtrHash(value) then
+                    return false
+                end
+            end
+            return true
+        end)() then
+            task.detailedTaskPart.chestPtr[GetPtrHash(value)]={EntityPtr(value),value.Position}
+        end
+    end
+    -- 维护chestPtr表内的变量，检查Position和EntityPtr指向的对象的实际坐标是否一致，不一致则更新Position
+    for key, value in pairs(task.detailedTaskPart.chestPtr) do
+        if value[1].Ref~=nil and value[1].Ref.Position:Distance(value[2])~=0 then
+            task.detailedTaskPart.chestPtr[key][2]=value[1].Ref.Position
+        end
+    end
+    for key, value in pairs(task.detailedTaskPart.chestPtr) do
+        -- 处理箱子被打开且没有给道具的情况
+        if value[1].Ref~=nil and value[1].Ref:GetSprite():IsPlaying("Opened") and
+        task.detailedTaskPart.targetChestState==1 then
+            task.detailedTaskPart.achieveCount=task.detailedTaskPart.achieveCount+1
+        end
+        -- 处理箱子被打开且给道具的情况
+        if value[1].Ref==nil then
+            local entityList_=Isaac.GetRoomEntities()
+            for _, entity in ipairs(entityList_) do
+                if entity.Type==EntityType.ENTITY_PICKUP and entity.Variant==100 and value[2]:Distance(entity.Position)==0 then
+                    task.detailedTaskPart.achieveCount=task.detailedTaskPart.achieveCount+1
+                    task.detailedTaskPart.chestPtr[key]=nil
+                end
+            end
+        end
+    end
+    checkTaskIfAchived(task)
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
+
+-- OpenChest 的组合子类, 每一个都是具体的任务
+
+-- 任务95: 开红箱子出1个道具
+local function task95()
+    local obj={
+        task=tasks_new(true,95,taskDescriptionList[95]),
+        detailedTaskPart=OpenChestOption({360},2,1),
+        [ModCallbacks.MC_POST_RENDER]={
+            chestsInCurrentRoom
+        }
+    }
+    return obj
+end
+
+local function task96()
+    local obj={
+        task=tasks_new(true,96,taskDescriptionList[96]),
+        detailedTaskPart=OpenChestOption(pickupPoolOfChest,2,2),
+        [ModCallbacks.MC_POST_RENDER]={
+            chestsInCurrentRoom
+        }
+    }
+    return obj
+end
+
+
+
+
+-- 子类22 other
 local function otherOption()
     local obj={}
     return obj
@@ -2159,6 +2291,7 @@ local function task34()
         }
     }
     obj.detailedTaskPart.achieveCount=0
+    obj.detailedTaskPart.TARGET_NUM=10
     return obj
 end
 
@@ -2203,7 +2336,7 @@ end
 local function task56AssistanceFunc1(task)
     local stage=Bingo.game:GetLevel():GetStage()
     if stage==LevelStage.STAGE1_1 then
-        task.task.isPickCollectible=false
+        task.detailedTaskPart.isPickCollectible=false
     end
 end
 
@@ -2247,6 +2380,7 @@ local function task64()
         }
     }
     obj.detailedTaskPart.achieveCount=0
+    obj.detailedTaskPart.TARGET_NUM=3
     obj.detailedTaskPart.achieveMap={}
     return obj
 end
@@ -2304,6 +2438,53 @@ local function task70()
         }
     }
     obj.detailedTaskPart.isOnbranchLine=true
+    return obj
+end
+
+-- 任务71：Boss Rush和凹凸连打
+local function task71Method(task)
+    if Bingo.game:GetStateFlag(GameStateFlag.STATE_BOSSRUSH_DONE) and
+    Bingo.game:GetStateFlag(GameStateFlag.STATE_BLUEWOMB_DONE) then
+        task.task.isAchieved=true
+    end
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
+local function task71()
+    local obj = {
+        task = tasks_new(true, 71, taskDescriptionList[71]),
+        detailedTaskPart =otherOption(),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            task71Method
+        },
+        conflictTasks = { 31, 52 }
+    }
+    return obj
+end
+
+-- 任务72：打完凹凸后直接打百变怪
+local function task72Method(task)
+    local stage=Bingo.game:GetLevel():GetStage()
+    local room=Bingo.game:GetLevel():GetCurrentRoomDesc()
+    if stage==LevelStage.STAGE7 and room.Data.Type==RoomType.ROOM_BOSS and
+    Isaac.CountEntities(nil,EntityType.ENTITY_DELIRIUM,0,0) then
+        task.detailedTaskPart.deliriumRoom=room.ListIndex
+    end
+    if Bingo.game:GetLevel():GetCurrentRoomDesc().ListIndex==task.detailedTaskPart.deliriumRoom and
+    Bingo.game:GetLevel():GetCurrentRoomDesc().Clear then
+        task.task.isAchieved=true
+    end
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
+local function task72()
+    local obj = {
+        task = tasks_new(true, 72, taskDescriptionList[72]),
+        detailedTaskPart = otherOption(),
+        [ModCallbacks.MC_POST_UPDATE] = {
+            task72Method
+        },
+        conflictTasks = { 22, 23, 28, 31, 41, 47, 52 }
+    }
+    obj.detailedTaskPart.deliriumRoom=-1
     return obj
 end
 
@@ -2452,27 +2633,106 @@ local function task89()
     return obj
 end
 
--- 任务88: 在商店累计买5个道具
+-- 任务88: 用金币累计买5个道具
 local function task88Method(task,pickup,player,_)
     if pickup:IsShopItem() and pickup.Type==EntityType.ENTITY_PICKUP and
-    pickup.Variant==100 then
+    pickup.Variant==100 and pickup.Price>0 then
+        task.detailedTaskPart.signal=1
+        task.detailedTaskPart.subType=pickup.SubType
+    end
+end
+
+local function BuyShopItem(task)
+    if task.detailedTaskPart.signal==1 and (not Bingo.player:IsItemQueueEmpty()) and
+    Bingo.player.QueuedItem.Item.ID==task.detailedTaskPart.subType then
+        task.detailedTaskPart.achieveCount=task.detailedTaskPart.achieveCount+1
+    end
+    task.detailedTaskPart.signal=0
+    task.detailedTaskPart.subType=0
+    checkTaskIfAchived(task)
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
+
+local function task88()
+    local obj={
+        task=tasks_new(true,88,taskDescriptionList[88]),
+        detailedTaskPart=otherOption(),
+        [ModCallbacks.MC_POST_UPDATE]={
+            BuyShopItem
+        },
+        [ModCallbacks.MC_PRE_PICKUP_COLLISION]={
+            task88Method
+        }
+    }
+    obj.detailedTaskPart.signal=0
+    obj.detailedTaskPart.subType=0
+    obj.detailedTaskPart.achieveCount=0
+    obj.detailedTaskPart.TARGET_NUM=5
+    return obj
+end
+
+-- 任务91: 对怪物累计造成5000点伤害
+local function task91Method(task,entity,amount)
+    if entity:IsActiveEnemy() then
+        task.detailedTaskPart.achieveCount=task.detailedTaskPart.achieveCount+amount
+    end
+    checkTaskIfAchived(task)
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
+
+local function task91()
+    local obj={
+        task=tasks_new(true,91,taskDescriptionList[91]),
+        detailedTaskPart=otherOption(),
+        [ModCallbacks.MC_ENTITY_TAKE_DMG]={
+            task91Method
+        }
+    }
+    obj.detailedTaskPart.achieveCount=0
+    obj.detailedTaskPart.TARGET_NUM=5000
+    return obj
+end
+
+-- 任务92: 累计杀死200只怪物
+local function task92Method(task,entity)
+    print("jisfsfs")
+    if entity:IsActiveEnemy (true) then
         task.detailedTaskPart.achieveCount=task.detailedTaskPart.achieveCount+1
     end
     checkTaskIfAchived(task)
     updateBingoMapConfigAndRemoveCallBack(task)
 end
 
-
-local function task88()
+local function task92()
     local obj={
-        task=tasks_new(true,88,taskDescriptionList[88]),
+        task=tasks_new(true,92,taskDescriptionList[92]),
         detailedTaskPart=otherOption(),
-        [ModCallbacks.MC_PRE_PICKUP_COLLISION]={
-            task88Method
+        [ModCallbacks.MC_POST_ENTITY_KILL]={
+            task92Method
         }
     }
     obj.detailedTaskPart.achieveCount=0
-    obj.detailedTaskPart.TARGET_NUM=5
+    obj.detailedTaskPart.TARGET_NUM=200
+    return obj
+end
+
+-- 任务94: 累计使用主动15次
+local function task94Method(task)
+    task.detailedTaskPart.achieveCount=task.detailedTaskPart.achieveCount+1
+    checkTaskIfAchived(task)
+    updateBingoMapConfigAndRemoveCallBack(task)
+end
+
+local function task94()
+    local obj={
+        task=tasks_new(true,94,taskDescriptionList[94]),
+        detailedTaskPart=otherOption(),
+        [ModCallbacks.MC_USE_ITEM]={
+            task94Method
+        }
+    }
+    obj.detailedTaskPart.achieveCount=0
+    obj.detailedTaskPart.TARGET_NUM=15
     return obj
 end
 
@@ -2600,8 +2860,16 @@ return {
     task88=task88,
     task89=task89,
     task90=task90,
+    task91=task91,
+    task92=task92,
+    task93=task93,
+    task94=task94,
+    task95=task95,
+    task96=task96,
     task97=task97,
     task98=task98,
+    task99=task99,
+    task100=task100,
     conflictCharacter,
     setTaskForCallback=setTaskForCallback,
     achieveSound=achieveSound

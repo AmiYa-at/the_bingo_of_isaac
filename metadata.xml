@@ -4,9 +4,16 @@
     <directory>bingo</directory>
     <id>3555711630</id>
     <description></description>
-    <version>3.14</version>
+    <version>3.23</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Active Items"/>
+    <tag id="Pills"/>
+    <tag id="Cards"/>
+    <tag id="Pickups"/>
+    <tag id="Familiars"/>
+    <tag id="Rooms"/>
+    <tag id="Floors"/>
+    <tag id="Enemies"/>
     <tag id="Challenges"/>
 </metadata>
