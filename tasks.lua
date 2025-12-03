@@ -290,6 +290,7 @@ local function updateBingoMapConfigAndRemoveCallBack(task)
             achieveSound:Play(579, 20)
             achieveSound:Play(128, 1)
             Bingo:getMapConfig(task.task.renderXOffset, task.task.renderYOffset)
+            Game():GetHUD():ShowItemText("任务完成！", task.task.description)
             Bingo.finishTasksNum = Bingo.finishTasksNum + 1
             print("finish_task: ",task.task.taskIndex,",finish_time: ",Bingo.gameTime)
             task.task.signal1 = 1
