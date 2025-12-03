@@ -956,6 +956,7 @@ function Bingo:tasksIconRender()
                         break
                     end
                     valueCol.task.taskIcon:SetFrame("task", 0)
+                    valueCol.task.taskIcon.Scale = Vector(1, 1)
                     valueCol.task.taskIcon:Render(Vector(Bingo.renderPositionOfTasks.X + 10 * valueCol.task
                         .renderXOffset + 1, Bingo.renderPositionOfTasks.Y + 10 * valueCol.task.renderYOffset + 1))
                     if valueCol.task.isAchieved and valueCol.task.achieveBy ~= -1 then
@@ -977,8 +978,9 @@ function Bingo:tasksIconRender()
             for indexRow, valueRow in ipairs(Bingo.map) do
                 for indexCol, valueCol in ipairs(valueRow) do
                     valueCol.task.taskIcon:SetFrame("task", 0)
+                    valueCol.task.taskIcon.Scale = Vector(2, 2);
                     valueCol.task.taskIcon:Render(Vector(Bingo.renderPositionOfTasks.X + 26 * valueCol.task
-                        .renderXOffset + 1, Bingo.renderPositionOfTasks.Y + 26 * valueCol.task.renderYOffset + 1))
+                        .renderXOffset + 1 - 5, Bingo.renderPositionOfTasks.Y + 26 * valueCol.task.renderYOffset + 1 - 5))
                     Bingo.taskMargin:SetFrame("margin", 0);
                     Bingo.taskMargin:Render(Vector(
                         Bingo.renderPositionOfTasks.X + 26 * valueCol.task.renderXOffset + 1 -
@@ -1001,8 +1003,9 @@ function Bingo:tasksIconRender()
         end
         if Bingo.taskSelectionEnable then
             Bingo.taskSelection:SetFrame("taskselect", 0)
-            Bingo.taskSelection:Render(Vector(Bingo.renderPositionOfTasks.X + Bingo.taskSelectionPosition.X * 26 + 1,
-                Bingo.renderPositionOfTasks.Y + Bingo.taskSelectionPosition.Y * 26 + 1))
+            Bingo.taskSelection.Scale = Vector(2, 2)
+            Bingo.taskSelection:Render(Vector(Bingo.renderPositionOfTasks.X + Bingo.taskSelectionPosition.X * 26 + 1 - 7,
+                Bingo.renderPositionOfTasks.Y + Bingo.taskSelectionPosition.Y * 26 + 1 - 7))
         else
             if not Bingo.taskSelectionEnable then
                 Bingo.taskSelection:SetFrame("taskselect1", 0)
