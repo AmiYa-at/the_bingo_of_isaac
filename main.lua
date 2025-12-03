@@ -1,77 +1,93 @@
 StartDebug()
 Bingo = RegisterMod("Bingo", 1)
 Bingo.version = "5.9"
-Bingo.userId = ""
-Bingo.roomId = ""
-Bingo.playerIndex = 0 --- 默认为0（即单人游玩模式）
-Bingo.gameMode = 0    --- 0为单人模式，1为多人模式
+
+-- =======================================================
+-- 【全局游戏】：一些全局量
+-- =======================================================
+
 Bingo.player = Isaac.GetPlayer(0)
 Bingo.game = Game()
 Bingo.level = Bingo.game:GetLevel()
+Bingo.userId = ""                  -- 用于多人模式在本地构建一个足够随机的id来表征身份
+Bingo.roomId = ""                  -- 用于存储多人模式当前游玩的房间号
+
+-- =======================================================
+--【计时变量】：计时器，游戏时间限时，用于展示的时间，用于启动特殊计时模式
+-- =======================================================
+
+Bingo.LIMITED_TIME = 45            -- 游戏时间限时，在多人组队模式限时为35min，且罚时
+Bingo.READMAPTIMELIMIT = 180000    -- 多人对战模式的读图时间限制，默认为180000毫秒（3min）
+Bingo.timerNew = 0                 -- 计时器运行时计时循环的新开始，用于存储新的循环帧的时间，用于与前一循环帧时间【Bingo.timerStart】相减算出两帧间流逝的时间
+Bingo.timerStart = 0               -- 存储上一循环帧对应的计算机时间
+Bingo.gameTime = 0                 -- 游戏正式开始时的计时器
+Bingo.puaseTime = 0
+Bingo.continuedTime = 0            -- 在彻底死亡或使用RestartKey道具时，记录此时的计时器时间（用于维护游戏本体计时器【TimeCounter】的时间与正常游戏时一致）
+Bingo.gameTimeForShow = { minute = "00", second = "00" } -- 用于展示游戏计时器的时间
+Bingo.readMapTimeForShow = { minute = "00", second = "00" } -- 在多人组队模式用于展示读图时间
+Bingo.readMapTime = 0              -- 专门为多人对战模式设计的读图时间
+Bingo.readMapTimeIsStarted = false -- 用于判断读图时间是否开始
+Bingo.timerForReadMapNew = 0       -- 读图计时器运行时计时循环的新开始，用于存储新的循环帧的时间，用于与前一循环帧相减算出两帧间流逝的读图时间
+Bingo.gameIsPaused = false         -- 用于判断游戏是否暂停
+Bingo.timerForReadMapStart = 0     -- 读图时存储上一循环帧对应的计算机时间
+
+-- ========================================================
+-- 【游戏状态】：生命数，游戏模式等状态变量
+-- ========================================================
+
 Bingo.lives = 2
 Bingo.newStart = true
-Bingo.LIMITED_TIME = 45
-Bingo.timerNew = 0
-Bingo.timerStart = 0
-Bingo.gameTime = 0
-Bingo.gameTimeForShow = { minute = "00", second = "00" }
-Bingo.readMapTimeForShow = { minute = "00", second = "00" }
-Bingo.readMapTime = 0 --专门为多人对战模式设计的读图时间
-Bingo.readMapTimeIsStarted = false
-Bingo.timerForReadMapNew = 0
-Bingo.timerForReadMapStart = 0
-Bingo.READMAPTIMELIMIT = 180000 --多人对战模式的读图时间限制，默认为180000毫秒
-
-
-Bingo.gameIsPaused = false
-Bingo.continuedTime = 0;
-Bingo.puaseTime = 0  --just for system time
-Bingo.gameIsOver = 0 --0 means not over,1 means you win,2 means other situations
-Bingo.finalBosses = {
-    { type = EntityType.ENTITY_ISAAC,        variant = 0 },
-    { type = EntityType.ENTITY_ISAAC,        variant = 1 },
-    { type = EntityType.ENTITY_THE_LAMB,     variant = 0 },
-    { type = EntityType.ENTITY_MOTHER,       variant = 10 },
-    { type = EntityType.ENTITY_SATAN,        variant = 10 },
-    { type = EntityType.ENTITY_MEGA_SATAN_2, variant = 0 },
-    { type = EntityType.ENTITY_BEAST,        variant = 0 },
-    { type = EntityType.ENTITY_DELIRIUM,     variant = 0 }
+Bingo.playerIndex = 0              -- 默认为0（即单人游玩模式）
+Bingo.gameMode = 0                 -- 0为单人模式，1为多人模式
+Bingo.gameIsStarted = false        -- 游戏是否正式开始
+Bingo.gameIsOver = 0               -- 0为游戏尚未结束，1为游戏获胜而结束，2为其他情况的游戏结束
+Bingo.enableSpecialMode = false    -- 是否启用单人模式中的特殊模式（完成任务给随机奖励）
+Bingo.enableTimeLimit = true       -- 是否启用单人模式中的时间限制
+Bingo.enableCooperatedMode = false -- 是否启用对战模式中的组队模式
+local color = {                    -- 组队模式对应的颜色枚举
+    RED = 1,
+    BLUE = 2
 }
-Bingo.finalBossPtr = { type = nil, variant = nil, ref = nil }
-Bingo.restartKey = Isaac.GetItemIdByName("Restart Key")
----ui variable---
-Bingo.selectArrow = Sprite()
-Bingo.startMenu = Font()
-Bingo.renderPosition = Isaac.WorldToRenderPosition(Vector(320, 150)) --need to alter
-Bingo.nameAndVersion = "以撒宾果mod ver" .. Bingo.version .. "by Amiya9212"
-Bingo.startMenuRootString = { "单人模式", "对战模式", "DR模式" }
-Bingo.startMenuStringOfSingle = { "随便开把", "种子生图", "趣味模式", "限时模式" }
-Bingo.startMenuStringOfBattle = "输入房间号: "
-Bingo.startMenuRootSelect = 0
-Bingo.startMenuSelectOfSingle = 0
-Bingo.enableSpecialMode = false
-Bingo.enableTimeLimit = true
-Bingo.enableCooperatedMode = false
-Bingo.startSignal = 0
-Bingo.meunIsChanged = false
-Bingo.gameIsStarted = false
-Bingo.FONT_OFFSET = 9
----tasks variable---
-Bingo.tasks = require("tasks")
-Bingo.renderPositionOfTasks = Isaac.WorldToRenderPosition(Vector(100, 420)) --needs to test--
-Bingo.finishIcon = Sprite()
-Bingo.taskSelection = Sprite()
-Bingo.tasksBackground = Sprite()
-Bingo.taskMargin = Sprite()
-Bingo.taskSelectionPosition = { X = 0, Y = 0 }
-Bingo.taskSelectionEnable = false
-Bingo.achieveSound = SFXManager()
-Bingo.TASKS_COUNT = 100
-Bingo.randomTasksQueue = {}
-Bingo.finishTasksNum = 0
-Bingo.longestLineLength = 0
-Bingo.map = {}
-Bingo.mapForCallBacks = {
+local CooperatedModeColor = { color.RED, color.RED, color.BLUE, color.BLUE } -- 组队模式四个席位对应的颜色
+
+-- ========================================================
+-- 【UI相关】：选项选择，文字展示等相关变量
+-- ========================================================
+
+Bingo.selectArrow = Sprite()       -- 主界面选项选择的箭头图标
+Bingo.startMenu = Font()           -- 管理所有文字的变量，用于打印字体在界面上
+Bingo.renderPosition = Isaac.WorldToRenderPosition(Vector(320, 150)) -- 主界面渲染的基坐标，所有的主界面文字渲染围绕这个这个坐标
+Bingo.nameAndVersion = "以撒宾果mod ver" .. Bingo.version .. "by Amiya9212" -- 主界面的模组作者和作者
+Bingo.startMenuRootString = { "单人模式", "对战模式", "DR模式" } -- 主界面一级选项
+Bingo.startMenuStringOfSingle = { "随便开把", "种子生图", "趣味模式", "限时模式" } -- 主界面单人模式的二级选项
+Bingo.startMenuStringOfBattle = "输入房间号: " -- 主界面多人模式的二级选项
+Bingo.startMenuRootSelect = 0      -- 主界面一级选项选择的选项
+Bingo.startMenuSelectOfSingle = 0  -- 主界面单人模式二级选项选择的选项
+Bingo.meunIsChanged = false        -- 判断是否从一级选项界面跳转到二级选项界面
+Bingo.seedForShow = ""             -- 展示当局游戏的种子
+Bingo.FONT_OFFSET = 9              -- 文字大小的常量
+local MOD_FOLDER_NAME = "bingo_3555711630" -- 模组文件夹位置，用于导入字体文件
+local CUSTOM_FONT_FILE_PATH = "font/eid9/eid9_9px.fnt" -- 字体文件位置，用于导入字体文件
+
+-- =======================================================
+-- 【任务变量】：任务渲染，完成任务的标识，选择任务的光标
+-- =======================================================
+
+Bingo.tasks = require("tasks")     -- 导入任务模块【tasks.lua】
+Bingo.renderPositionOfTasks = Isaac.WorldToRenderPosition(Vector(100, 420)) -- 任务图渲染的基坐标，所有的任务渲染界面都围绕这个坐标
+Bingo.finishIcon = Sprite()        -- 完成任务的标识图案
+Bingo.taskSelection = Sprite()     -- 选择任务的光标
+Bingo.tasksBackground = Sprite()   -- 任务图背景图
+Bingo.taskMargin = Sprite()        -- 任务图边框
+Bingo.taskSelectionPosition = { X = 0, Y = 0 } -- 选择任务的光标选择的对应的坐标
+Bingo.taskSelectionEnable = false  -- 是否启用光标移动
+Bingo.achieveSound = SFXManager()  -- 完成任务的声音管理对象
+Bingo.TASKS_COUNT = 100            -- 当前任务库的任务总数
+Bingo.randomTasksQueue = {}        -- 目前没用
+Bingo.finishTasksNum = 0           -- 一局游戏完成任务的数量
+Bingo.longestLineLength = 0        -- 一局游戏完成任务的最大连线长度
+Bingo.map = {}                     -- 一局游戏存储任务变量的任务图
+Bingo.mapForCallBacks = {          -- 存储每个任务对应的函数，使其能在对应回调中被执行
     [ModCallbacks.MC_POST_UPDATE] = {},
     [ModCallbacks.MC_POST_RENDER] = {},
     [ModCallbacks.MC_POST_NEW_LEVEL] = {},
@@ -82,25 +98,55 @@ Bingo.mapForCallBacks = {
     [ModCallbacks.MC_POST_ENTITY_KILL] = {},
     [ModCallbacks.MC_USE_ITEM] = {}
 }
-Bingo.seedForShow = ""
----virtual keyboard and input variables--
-Bingo.keyboard = require("keyboard")
----font path---
-local MOD_FOLDER_NAME = "bingo_3555711630"
-local CUSTOM_FONT_FILE_PATH = "font/eid9/eid9_9px.fnt"
--- 测试用
+
+-- =======================================================
+-- 【RestartKey】：指定的终点Boss，RestartKey
+-- =======================================================
+
+Bingo.finalBosses = {              -- 终点Boss表
+    { type = EntityType.ENTITY_ISAAC,        variant = 0 },
+    { type = EntityType.ENTITY_ISAAC,        variant = 1 },
+    { type = EntityType.ENTITY_THE_LAMB,     variant = 0 },
+    { type = EntityType.ENTITY_MOTHER,       variant = 10 },
+    { type = EntityType.ENTITY_SATAN,        variant = 10 },
+    { type = EntityType.ENTITY_MEGA_SATAN_2, variant = 0 },
+    { type = EntityType.ENTITY_BEAST,        variant = 0 },
+    { type = EntityType.ENTITY_DELIRIUM,     variant = 0 }
+}
+Bingo.finalBossPtr = { type = nil, variant = nil, ref = nil } -- 存储当前房间最终boss的指针
+Bingo.restartKey = Isaac.GetItemIdByName("Restart Key") -- Restart Key道具注册 
+
+-- =======================================================
+-- 【键盘输入】：键盘输入
+-- =======================================================
+
+Bingo.keyboard = require("keyboard") -- 导入键盘输入模块【keyboard.lua】
+
+-- =======================================================
+-- 【WebSocket】：ws全连接变量
+-- =======================================================
+
+local dkjson = require("dkjson")     -- 导入json处理模块【dkjson.lua】
+local roomIdParts = {};              -- 房间id分块存储，包含房间号和席位号
+local partsSeed = {};                -- 游戏种子分块存储
+Bingo.ws = nil                       -- WebSocket全连接管理变量
+local wsConnectStatus = false        -- 判断WebSocket全连接是否维持
+
+-- =======================================================
+-- 【测试使用】：启用任务测试，是否启用测试
+-- =======================================================
+
 Bingo.enableDebugTask = false
 Bingo.test = nil
 
--- 组队对战模式用
-local color = {
-    RED = 1,
-    BLUE = 2
-}
-local CooperatedModeColor = { color.RED, color.RED, color.BLUE, color.BLUE }
 
 
----funtions---
+
+Bingo.startSignal = 0
+
+-- =======================================================
+-- 【业务函数】：Bingo游戏逻辑实现
+-- =======================================================
 
 function Bingo.setUserId()
     local hex = ""
@@ -123,12 +169,7 @@ end
 
 --- webSocket相关 ---
 
-local dkjson = require("dkjson")
 
-local roomIdParts = {};
-local partsSeed = {};
-Bingo.ws = nil
-local wsConnectStatus = false
 
 local function CallbackOnOpen()
     print("Open")
@@ -209,7 +250,7 @@ end
 function Bingo:reconnect()
     if IsaacSocket and Bingo.gameMode == 1 and Bingo.gameIsStarted and ((not Bingo.ws) or Bingo.ws.IsClosed()) then
         Bingo.ws = IsaacSocket.WebSocketClient.New(
-            "wss://pbkyopvordqk.sealoshzh.site:443/ws?type=&userId=" ..
+            "wss://bqlyzrcttdiq.sealosbja.site:443/ws?type=&userId=" ..
             Bingo.userId ..
             "&roomId=" .. roomIdParts[1] .. "&seed=" .. partsSeed[1] ..
             partsSeed[2] .. "&seatIndex=" .. roomIdParts[2], CallbackOnOpen, CallbackOnMessage, CallbackOnClose,
@@ -379,7 +420,7 @@ function Bingo:gameStartMenu()
                     roomIdParts = split(Bingo.keyboard.getRoomIdText(), "&")
                     partsSeed = split(Bingo.seedForShow, " ")
                     Bingo.ws = IsaacSocket.WebSocketClient.New(
-                        "wss://pbkyopvordqk.sealoshzh.site:443/ws?type=&userId=" ..
+                        "wss://bqlyzrcttdiq.sealosbja.site:443/ws?type=&userId=" ..
                         Bingo.userId ..
                         "&roomId=" .. roomIdParts[1] .. "&seed=" .. partsSeed[1] ..
                         partsSeed[2] .. "&seatIndex=" .. roomIdParts[2], CallbackOnOpen, CallbackOnMessage,
