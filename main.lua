@@ -225,6 +225,8 @@ local function CallbackOnMessage(message, isBinary)
                 if gameStartTable.data.achieveBy == Bingo.playerIndex then
                     Bingo.tasks.achieveSound:Play(579, 20)
                     Bingo.tasks.achieveSound:Play(128, 1)
+                    Game():GetHUD():ShowItemText("任务完成！",
+                        Bingo.map[gameStartTable.data.row + 1][gameStartTable.data.col + 1].task.description)
                     local taskX = gameStartTable.data.col
                     local taskY = gameStartTable.data.row
                     print(taskX, " ", taskY)
@@ -232,6 +234,8 @@ local function CallbackOnMessage(message, isBinary)
                     Bingo.finishTasksNum = Bingo.finishTasksNum + 1
                 else
                     Bingo.tasks.achieveSound:Play(579, 20)
+                        Game():GetHUD():ShowItemText("对手完成了任务",
+                        Bingo.map[gameStartTable.data.row + 1][gameStartTable.data.col + 1].task.description)
                 end
             end
         end
