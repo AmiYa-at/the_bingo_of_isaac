@@ -623,9 +623,13 @@ function Bingo:tasksIconRender()
         local taskSelected = Bingo.map[Bingo.taskSelectionPosition.Y + 1][Bingo.taskSelectionPosition.X + 1]
         if Bingo.taskSelectionEnable then
             if taskSelected.detailedTaskPart.achieveCount ~= nil and taskSelected.detailedTaskPart.TARGET_NUM ~= nil then
+                local achievedCountDisplay = taskSelected.detailedTaskPart.achieveCount
+                if math.type(achievedCountDisplay) == "float" then
+                    achievedCountDisplay = string.format("%.2f", achievedCountDisplay)
+                end
                 Bingo.startMenu:DrawStringScaledUTF8(
                     taskSelected.task.description ..
-                    " " .. taskSelected.detailedTaskPart.achieveCount .. "/" .. taskSelected.detailedTaskPart.TARGET_NUM,
+                    " " .. achievedCountDisplay .. "/" .. taskSelected.detailedTaskPart.TARGET_NUM,
                     Bingo.renderPositionOfTasks.X + 130, Bingo.renderPositionOfTasks.Y, 1.6, 1.6, KColor(1, 1, 1, 1))
             else
                 Bingo.startMenu:DrawStringScaledUTF8(taskSelected.task.description, Bingo.renderPositionOfTasks.X + 130,
@@ -633,9 +637,13 @@ function Bingo:tasksIconRender()
             end
         else
             if taskSelected.detailedTaskPart.achieveCount ~= nil and taskSelected.detailedTaskPart.TARGET_NUM ~= nil then
+                local achievedCountDisplay = taskSelected.detailedTaskPart.achieveCount
+                if math.type(achievedCountDisplay) == "float" then
+                    achievedCountDisplay = string.format("%.2f", achievedCountDisplay)
+                end
                 Bingo.startMenu:DrawStringUTF8(
                     taskSelected.task.description ..
-                    " " .. taskSelected.detailedTaskPart.achieveCount .. "/" .. taskSelected.detailedTaskPart.TARGET_NUM,
+                    " " .. achievedCountDisplay .. "/" .. taskSelected.detailedTaskPart.TARGET_NUM,
                     Bingo.renderPositionOfTasks.X + 80, Bingo.renderPositionOfTasks.Y, KColor(1, 1, 1, 1))
             else
                 Bingo.startMenu:DrawStringUTF8(taskSelected.task.description, Bingo.renderPositionOfTasks.X + 80,
