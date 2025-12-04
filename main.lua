@@ -79,7 +79,7 @@ Bingo.finishIcon = Sprite()        -- 完成任务的标识图案
 Bingo.taskSelection = Sprite()     -- 选择任务的光标
 Bingo.tasksBackground = Sprite()   -- 任务图背景图
 Bingo.taskMargin = Sprite()        -- 任务图边框
-Bingo.taskSelectionPosition = { X = 0, Y = 0 } -- 选择任务的光标选择的对应的坐标
+Bingo.taskSelectionPosition = { X = 0, Y = 0 } -- 选择任务的光标选择的对应的格坐标
 Bingo.taskSelectionEnable = false  -- 是否启用光标移动
 Bingo.achieveSound = SFXManager()  -- 完成任务的声音管理对象
 Bingo.TASKS_COUNT = 100            -- 当前任务库的任务总数
@@ -148,6 +148,11 @@ Bingo.startSignal = 0
 -- 【业务函数】：Bingo游戏逻辑实现
 -- =======================================================
 
+-- -------------------------------------------------------
+-- 子分类：辅助工具函数
+-- -------------------------------------------------------
+
+-- 功能：生成随机的id，用于多人模式服务端身份区分
 function Bingo.setUserId()
     local hex = ""
     for i = 1, 8, 1 do
@@ -157,6 +162,10 @@ function Bingo.setUserId()
     return hex
 end
 
+-- 功能：将字符串根据分隔符分割
+--- @param str string - 字符串
+--- @param sep string - 分隔符
+--- @return table result - 分割后的子字符串组
 local function split(str, sep)
     local result = {}
     -- 模式 "[^" .. sep .. "]+" 表示匹配一个或多个非 sep 的字符
@@ -166,11 +175,11 @@ local function split(str, sep)
     return result
 end
 
+-- -------------------------------------------------------
+-- 子分类：WebSocket相关函数
+-- -------------------------------------------------------
 
---- webSocket相关 ---
-
-
-
+-- 功能：WebSocket连接建立时执行的回调函数
 local function CallbackOnOpen()
     print("Open")
     if not Bingo.gameIsStarted then
@@ -203,6 +212,9 @@ local function CallbackOnOpen()
     end
 end
 
+-- 功能：收到消息时执行的回调函数
+--- @param message string - 收到的消息
+--- @param isBinary boolean - 是否为二进制消息
 local function CallbackOnMessage(message, isBinary)
     if isBinary then
         print("Binary Message,length: " .. #message)
@@ -212,12 +224,12 @@ local function CallbackOnMessage(message, isBinary)
         if err then
             print(err, pos)
         else
-            if gameStartTable.type == "start_game" then
+            if gameStartTable~=nil and gameStartTable.type == "start_game" then
                 Bingo.gameIsPaused=true
                 Bingo.readMapTimeIsStarted = true
                 Bingo.timerForReadMapStart = Isaac.GetTime()
                 print("maptime: ", Bingo.readMapTime)
-            elseif gameStartTable.type == "task_confirmed" then
+            elseif gameStartTable~=nil and gameStartTable.type == "task_confirmed" then
                 Bingo.map[gameStartTable.data.row + 1][gameStartTable.data.col + 1].task.isAchieved = true
                 Bingo.map[gameStartTable.data.row + 1][gameStartTable.data.col + 1].task.achieveBy = gameStartTable.data
                     .achieveBy
@@ -238,15 +250,21 @@ local function CallbackOnMessage(message, isBinary)
     end
 end
 
+-- 功能：连接关闭时执行的回调函数
+--- @param closeStatus integer - 连接关闭状态码
+--- @param statusDescription string - 连接关闭描述
 local function CallbackOnClose(closeStatus, statusDescription)
     print("Close: ", closeStatus, statusDescription)
     wsConnectStatus = false
 end
 
+-- 功能：连接发生错误时执行的回调函数
+--- @param message string - 错误消息
 local function CallbackOnError(message)
     print("Error: ", message)
 end
 
+-- 功能：在对局途中如果网络断开，网络恢复后重新建立WebSocket连接
 function Bingo:reconnect()
     if IsaacSocket and Bingo.gameMode == 1 and Bingo.gameIsStarted and ((not Bingo.ws) or Bingo.ws.IsClosed()) then
         Bingo.ws = IsaacSocket.WebSocketClient.New(
@@ -258,6 +276,11 @@ function Bingo:reconnect()
     end
 end
 
+-- -------------------------------------------------------
+-- 子分类：界面UI函数
+-- -------------------------------------------------------
+
+-- 功能：提供游戏开始的主菜单界面
 function Bingo:gameStartMenu()
     if Bingo.gameIsStarted == false and Bingo.readMapTimeIsStarted == false then
         Bingo.player.ControlsEnabled = false --stop the player--
@@ -449,282 +472,7 @@ function Bingo:gameStartMenu()
     end
 end
 
---initialize when a new game is started
---#need to finish
-function Bingo:gameInitialize(isContinued)
-    Bingo.player = Isaac.GetPlayer(0)
-    Bingo.game = Game()
-    Bingo.finalBossPtr.type = nil
-    Bingo.finalBossPtr.variant = nil
-    Bingo.finalBossPtr.ref = nil
-    if Bingo.newStart == true then
-        roomIdParts = {}
-        partsSeed = {}
-        Bingo.ws = nil
-        Bingo.newStart = false
-        Bingo.playerIndex = 0
-        Bingo.gameMode = 0
-        Bingo.LIMITED_TIME=45
-        Bingo.lives = 2
-        Bingo.timerNew = 0
-        Bingo.timerStart = 0
-        Bingo.gameTime = 0
-        Bingo.gameTimeForShow.minute = "00"
-        Bingo.gameTimeForShow.second = "00"
-        Bingo.gameIsPaused = false
-        Bingo.puaseTime = 0
-        Bingo.continuedTime = 0
-        Bingo.readMapTime = 0
-        Bingo.readMapTimeIsStarted = false
-        Bingo.timerForReadMapNew = 0
-        Bingo.timerForReadMapStart = 0
-        Bingo.gameIsOver = 0
-        Bingo.game:GetSeeds():ClearSeedEffects()
-        Isaac.ExecuteCommand("seed " .. (Game():GetSeeds():GetStartSeedString()))
-        -----startMenu-----
-        Bingo.startMenu:Load("mods/" .. MOD_FOLDER_NAME .. "/resources/" .. CUSTOM_FONT_FILE_PATH)
-        Bingo.selectArrow:Load("gfx/ui/select_arrow.anm2", true)
-        Bingo.gameIsStarted = false
-        Bingo.startMenuRootSelect = 1
-        Bingo.startMenuSelectOfSingle = 1
-        Bingo.enableSpecialMode = false
-        Bingo.enableTimeLimit = true
-        Bingo.startSignal = 0
-        Bingo.meunIsChanged = false
-        Bingo.selectArrow:SetFrame("Select", 0)
-        Bingo.selectArrow:Render(Vector(Bingo.renderPosition.X + Bingo.FONT_OFFSET * 3,
-            Bingo.renderPosition.Y + Bingo.FONT_OFFSET * 3 + 4))
-        -----tasks-----
-        Bingo.finishIcon:Load("gfx/ui/finish_icon.anm2", true)
-        Bingo.taskSelection:Load("gfx/ui/task_select.anm2", true)
-        Bingo.tasksBackground:Load("gfx/ui/tasks_background.anm2", true)
-        Bingo.taskMargin:Load("gfx/ui/tab_task_margin.anm2", true)
-        Bingo.taskSelectionPosition.X = 0
-        Bingo.taskSelectionPosition.Y = 0
-        Bingo.taskSelectionEnable = false
-        Bingo.randomTasksQueue = {}
-        itemPoolOfPickedUpActive = {}
-        Bingo.finishTasksNum = 0
-        Bingo.longestLineLength = 0
-
-        Bingo.seedForShow = Bingo.game:GetSeeds():GetStartSeedString()
-    end
-end
-
---退出该局就会重置整局
-function Bingo:resetWhenExit(ShouldSave)
-    if ShouldSave then
-        Bingo.newStart = true
-        Bingo.gameIsStarted = false
-        if IsaacSocket and Bingo.ws ~= nil then
-            Bingo.ws.Close(1000, "成功关闭连接")
-        end
-        if next(Bingo.map, nil) ~= nil then
-            for i = 1, 5, 1 do
-                for j = 1, 5, 1 do
-                    Bingo.map[i][j] = nil;
-                end
-            end
-        end
-        for key, value in pairs(Bingo.mapForCallBacks) do
-            Bingo.mapForCallBacks[key] = {}
-        end
-        Bingo.map = {}
-        -- 测试任务用
-        test = nil
-    end
-end
-
----------- 时间相关 ----------
-
-
--- 设置用于展示的游戏时间gameTime和读图时间readMapTime
-function Bingo:setGameTimeForShow()
-    local time = Bingo.gameTime // 1000
-    local readMapTime = (Bingo.READMAPTIMELIMIT - Bingo.readMapTime) // 1000
-    if time // 60 >= 0 and time // 60 <= 9 then
-        Bingo.gameTimeForShow.minute = "0" .. time // 60
-    else
-        Bingo.gameTimeForShow.minute = time // 60
-    end
-    if time % 60 >= 0 and time % 60 <= 9 then
-        Bingo.gameTimeForShow.second = "0" .. time % 60
-    else
-        Bingo.gameTimeForShow.second = time % 60
-    end
-    -- 读图时间
-    if readMapTime // 60 >= 0 and readMapTime // 60 <= 9 then
-        Bingo.readMapTimeForShow.minute = "0" .. readMapTime // 60
-    else
-        Bingo.readMapTimeForShow.minute = readMapTime // 60
-    end
-    if readMapTime % 60 >= 0 and readMapTime % 60 <= 9 then
-        Bingo.readMapTimeForShow.second = "0" .. readMapTime % 60
-    else
-        Bingo.readMapTimeForShow.second = readMapTime % 60
-    end
-end
-
---rewrite the logic of pressing key-R to restart the game
-function Bingo:keyrRestart()
-    if Input.IsActionTriggered(ButtonAction.ACTION_RESTART, Bingo.player.ControllerIndex) and Input.IsActionPressed(ButtonAction.ACTION_MAP, Bingo.player.ControllerIndex) then
-        Bingo.newStart = true
-        Isaac.ExecuteCommand("restart")
-    end
-end
-
--- 计算模组提供的gameTime和readMapTime(不是游戏本体的计时器TimeCounter)
-function Bingo:countTime()
-    if (not Bingo.gameIsPaused) and Bingo.gameIsStarted == true and Bingo.gameIsOver == 0 then
-        Bingo.timerNew = Isaac.GetTime()
-        Bingo.gameTime = Bingo.gameTime + Bingo.timerNew - Bingo.timerStart
-        Bingo.timerStart = Isaac.GetTime()
-    elseif Bingo.gameIsPaused and Bingo.gameIsStarted and Bingo.gameIsOver == 0 then
-        Bingo.timerStart = Isaac.GetTime()
-        Bingo.timerNew = Isaac.GetTime()
-    end
-    -- 专门为多人对战模式设计的读图时间
-    if Bingo.readMapTimeIsStarted and Bingo.gameMode == 1 and (not Bingo.gameIsStarted) and Bingo.gameIsOver == 0 and Bingo.readMapTime < Bingo.READMAPTIMELIMIT then
-        Bingo.timerForReadMapNew = Isaac.GetTime()
-        Bingo.readMapTime = Bingo.readMapTime + Bingo.timerForReadMapNew - Bingo.timerForReadMapStart
-        Bingo.timerForReadMapStart = Isaac.GetTime()
-    end
-end
-
---pause the game
-function Bingo:pauseGame()
-    if ((Input.IsActionTriggered(ButtonAction.ACTION_DROP, Bingo.player.ControllerIndex) and Input.IsActionPressed(ButtonAction.ACTION_MAP, Bingo.player.ControllerIndex)) or
-            Input.IsButtonTriggered(Keyboard.KEY_F4, 114514) or
-            (Input.IsActionTriggered(ButtonAction.ACTION_MAP, Bingo.player.ControllerIndex) and Input.IsActionPressed(ButtonAction.ACTION_DROP, Bingo.player.ControllerIndex))) and Bingo.gameIsPaused == false and Bingo.gameMode == 0 then
-        Bingo.puaseTime = Bingo.game.TimeCounter
-        Bingo.gameIsPaused = true
-        Bingo.player.ControlsEnabled = false
-        return
-    elseif ((Input.IsActionTriggered(ButtonAction.ACTION_DROP, Bingo.player.ControllerIndex) and Input.IsActionPressed(ButtonAction.ACTION_MAP, Bingo.player.ControllerIndex)) or
-            Input.IsButtonTriggered(Keyboard.KEY_F4, 114514) or
-            (Input.IsActionTriggered(ButtonAction.ACTION_MAP, Bingo.player.ControllerIndex) and Input.IsActionPressed(ButtonAction.ACTION_DROP, Bingo.player.ControllerIndex))) and Bingo.gameIsPaused == true and Bingo.gameMode == 0 then
-        Bingo.gameIsPaused = false
-        Bingo.player.ControlsEnabled = true
-        return
-    end
-end
-
--- 暂停游戏时将游戏时间TimeCounter和模组当前时间puaseTime保持一致，即暂停游戏时间TimeCounter
-function Bingo:setPauseTime()
-    if Bingo.gameIsPaused then
-        Bingo.game.TimeCounter = Bingo.puaseTime
-    end
-end
-
---游戏内置的暂停生效时保证游戏内置时间继续（保证凹凸和bossrush的时间和gameTime一致）
-function Bingo:setTimeCounterContinued()
-    if Bingo.game:IsPaused()
-    then
-        Bingo.game.TimeCounter = math.floor((Bingo.gameTime - Bingo.continuedTime) * 0.03)
-    end
-end
-
----------- 任务函数加入回调相关 ----------
-
-
-Bingo.mapForCallBacksFunc = {
-    [ModCallbacks.MC_POST_UPDATE] = function()
-        if Bingo.gameIsStarted then
-            for key, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_POST_UPDATE]) do
-                for index, valueFunc in ipairs(value[2]) do
-                    valueFunc(value[1])
-                end
-            end
-        end
-    end,
-    [ModCallbacks.MC_POST_RENDER] = function()
-        if Bingo.gameIsStarted then
-            for key, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_POST_RENDER]) do
-                for index, valueFunc in ipairs(value[2]) do
-                    valueFunc(value[1])
-                end
-            end
-        end
-    end,
-    [ModCallbacks.MC_POST_NEW_LEVEL] = function()
-        if Bingo.gameIsStarted then
-            for _, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_POST_NEW_LEVEL]) do
-                for index, valueFunc in ipairs(value[2]) do
-                    valueFunc(value[1])
-                end
-            end
-        end
-    end,
-    [ModCallbacks.MC_ENTITY_TAKE_DMG] = function(_, entity, amount, damageFlags, source, countdownFrames)
-        if Bingo.gameIsStarted then
-            for _, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_ENTITY_TAKE_DMG]) do
-                for index, valueFunc in ipairs(value[2]) do
-                    valueFunc(value[1], entity, amount, damageFlags, source, countdownFrames)
-                end
-            end
-        end
-    end,
-    [ModCallbacks.MC_USE_CARD] = function()
-        if Bingo.gameIsStarted then
-            for _, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_USE_CARD]) do
-                for index, valueFunc in ipairs(value[2]) do
-                    valueFunc(value[1])
-                end
-            end
-        end
-    end,
-    [ModCallbacks.MC_PRE_PICKUP_COLLISION] = function(_, pickup, collider, low)
-        if Bingo.gameIsStarted then
-            for _, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_PRE_PICKUP_COLLISION]) do
-                for index, valueFunc in ipairs(value[2]) do
-                    valueFunc(value[1], pickup, collider, low)
-                end
-            end
-        end
-    end,
-    [ModCallbacks.MC_USE_PILL] = function()
-        if Bingo.gameIsStarted then
-            for _, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_USE_PILL]) do
-                for index, valueFunc in ipairs(value[2]) do
-                    valueFunc(value[1])
-                end
-            end
-        end
-    end,
-    [ModCallbacks.MC_POST_ENTITY_KILL] = function(_, entity)
-        if Bingo.gameIsStarted then
-            for _, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_POST_ENTITY_KILL]) do
-                for index, valueFunc in ipairs(value[2]) do
-                    valueFunc(value[1], entity)
-                end
-            end
-        end
-    end,
-    [ModCallbacks.MC_USE_ITEM] = function()
-        if Bingo.gameIsStarted then
-            for _, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_USE_ITEM]) do
-                for index, valueFunc in ipairs(value[2]) do
-                    valueFunc(value[1])
-                end
-            end
-        end
-    end
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---show information during the game
+-- 功能：在对局中展示游戏相关信息（如总用时，已完成任务数等）
 function Bingo:showGameInfo()
     Bingo.startMenu:DrawStringUTF8("总用时: " .. Bingo.gameTimeForShow.minute .. ":" .. Bingo.gameTimeForShow.second, 10,
         200, KColor(1, 1, 1, 1))
@@ -745,36 +493,7 @@ function Bingo:showGameInfo()
     end
 end
 
---one of the game-over situations:when 3 lives are spent
-function Bingo:playerDeath(IsGameOver)
-    if Bingo.lives > 0 and IsGameOver then
-        Bingo.lives = Bingo.lives - 1
-        Bingo.continuedTime = Bingo.gameTime;
-        -- 在多人组队模式下死亡有罚时剩余时间的30%
-        if Bingo.enableCooperatedMode then
-            Bingo.LIMITED_TIME=Bingo.LIMITED_TIME-math.floor((Bingo.LIMITED_TIME-Bingo.gameTime/60000)*0.30)
-        end
-    end
-    if Bingo.lives <= 0 and IsGameOver then
-        Bingo.gameIsOver = 2
-    end
-end
-
---another situation of game-over:time is over
-function Bingo:timeIsOver()
-    if Bingo.gameTime >= Bingo.LIMITED_TIME * 60 * 1000 and Bingo.enableTimeLimit then
-        Bingo.gameIsOver = 2
-    end
-end
-
---get won
-function Bingo:winAct()
-    if Bingo.longestLineLength == 5 then
-        Bingo.gameIsOver = 1
-    end
-end
-
---show game-over information
+-- 功能：游戏结束时展示信息
 function Bingo:showGameOverInfo()
     if Bingo.gameIsOver ~= 0 then
         if Bingo.gameIsOver == 1 then
@@ -800,189 +519,7 @@ function Bingo:showGameOverInfo()
     end
 end
 
---检索节点之间是否矛盾
-local function isTasksConflicted(taskRandomIndex, taskExistIndex)
-    if taskExistIndex.conflictTasks == nil then
-        return false
-    end
-    for _, value in ipairs(taskExistIndex.conflictTasks) do
-        if taskRandomIndex == value then
-            return true
-        end
-    end
-    return false
-end
---检索节点和角色之间是否矛盾
-local function isTaskConflictWithCharacter(taskRandomIndex, playerType)
-    local playerNum = tonumber(Bingo.player:GetPlayerType())
-    if playerType["c" .. playerNum] == nil then
-        return false
-    else
-        for _, value in ipairs(playerType["c" .. playerNum]) do
-            if taskRandomIndex == value then
-                return true
-            end
-        end
-    end
-    return false
-end
---检查该节点是否与bingo图中已有节点重复或有矛盾
---待完善
-local function isTaskNoProblem(row, col, taskIndex, mode)
-    -- 检查该任务是否与角色冲突
-    if isTaskConflictWithCharacter(taskIndex, Bingo.tasks[1]) then
-        return false
-    end
-    -- 检查是否与地图上已有节点重复
-    -- 检查完整生成的行
-    for i = 1, row - 1, 1 do
-        for j = 1, 5, 1 do
-            if taskIndex == Bingo.map[i][j].task.taskIndex then
-                return false
-            end
-        end
-    end
-    -- 检查残缺的行
-    for i = 1, col - 1, 1 do
-        if taskIndex == Bingo.map[row][i].task.taskIndex then
-            return false
-        end
-    end
-    -- 检查该节点是否与其他节点矛盾
-    if mode == 1 then
-        -- 检查这一行是否有矛盾的元素
-        for i = 1, col - 1, 1 do
-            if isTasksConflicted(taskIndex, Bingo.map[row][i]) then
-                return false
-            end
-        end
-        -- 检索这一列有没有矛盾的元素
-        for i = 1, row - 1, 1 do
-            if isTasksConflicted(taskIndex, Bingo.map[i][col]) then
-                return false
-            end
-        end
-    end
-    return true
-end
--- 生成bingo图
-function Bingo:createBingoMap()
-    local taskIndex = 0
-    for row = 1, 5, 1 do
-        Bingo.map[row] = {}
-        for col = 1, 5, 1 do
-            local searchTime = 0
-            local mode = 1
-            --for debug
-            local debugtime = 0
-            taskIndex = math.random(1, Bingo.TASKS_COUNT)
-            print("map num: ",taskIndex)
-            while (not isTaskNoProblem(row, col, taskIndex, mode)) do
-                taskIndex = math.random(1, Bingo.TASKS_COUNT)
-                searchTime = searchTime + 1
-                debugtime = debugtime + 1
-                if searchTime >= Bingo.TASKS_COUNT then
-                    mode = 0
-                end
-                if debugtime >= 1000000000 then
-                    print("break")
-                    break
-                end
-            end
-            Bingo.map[row][col] = Bingo.tasks["task" .. taskIndex]()
-            if Bingo.map[row][col] == nil then
-                print("nil")
-            end
-            Bingo.map[row][col].task.taskIcon:Load("gfx/tasks/task" .. taskIndex .. ".anm2", true)
-            Bingo.map[row][col].task.renderXOffset = col - 1
-            Bingo.map[row][col].task.renderYOffset = row - 1
-            Bingo.tasks.setTaskForCallback(Bingo.map[row][col])
-        end
-    end
-    --如果当前生成节点所在的位置在主对角线上，检索有无矛盾元素
-end
-
---get bingo map config
-function Bingo:getMapConfig(taskX, taskY)
-    local length = 0
-    local maxLength = 0
-    --row
-    for i = 1, 5, 1 do
-        if Bingo.map[i][taskX + 1].task.isAchieved and (Bingo.map[i][taskX + 1].task.achieveBy == Bingo.playerIndex or
-                (Bingo.enableCooperatedMode and CooperatedModeColor[Bingo.map[i][taskX + 1].task.achieveBy] == CooperatedModeColor[Bingo.playerIndex])) then
-            length = length + 1
-        else
-            length = 0
-        end
-        if length > maxLength then
-            maxLength = length
-        end
-    end
-    Bingo.longestLineLength = (maxLength > Bingo.longestLineLength) and maxLength or Bingo.longestLineLength
-    maxLength = 0
-    length = 0
-    --col
-    for i = 1, 5, 1 do
-        if Bingo.map[taskY + 1][i].task.isAchieved and (Bingo.map[taskY + 1][i].task.achieveBy == Bingo.playerIndex or
-                (Bingo.enableCooperatedMode and CooperatedModeColor[Bingo.map[taskY + 1][i].task.achieveBy] == CooperatedModeColor[Bingo.playerIndex])) then
-            length = length + 1
-        else
-            length = 0
-        end
-        if length > maxLength then
-            maxLength = length
-        end
-    end
-    Bingo.longestLineLength = (maxLength > Bingo.longestLineLength) and maxLength or Bingo.longestLineLength
-    maxLength = 0
-    length = 0
-    --diag
-    if taskX == taskY then
-        for i = 1, 5, 1 do
-            if Bingo.map[i][i].task.isAchieved and (Bingo.map[i][i].task.achieveBy == Bingo.playerIndex or
-                    (Bingo.enableCooperatedMode and CooperatedModeColor[Bingo.map[i][i].task.achieveBy] == CooperatedModeColor[Bingo.playerIndex])) then
-                length = length + 1
-            else
-                length = 0
-            end
-            if length > maxLength then
-                maxLength = length
-            end
-        end
-    end
-    Bingo.longestLineLength = (maxLength > Bingo.longestLineLength) and maxLength or Bingo.longestLineLength
-    maxLength = 0
-    length = 0
-    if taskX + taskY == 4 then
-        for i = 1, 5, 1 do
-            if Bingo.map[6 - i][i].task.isAchieved and (Bingo.map[6 - i][i].task.achieveBy == Bingo.playerIndex or
-                    (Bingo.enableCooperatedMode and CooperatedModeColor[Bingo.map[6 - i][i].task.achieveBy] == CooperatedModeColor[Bingo.playerIndex])) then
-                length = length + 1
-            else
-                length = 0
-            end
-            if length > maxLength then
-                maxLength = length
-            end
-        end
-    end
-    Bingo.longestLineLength = (maxLength > Bingo.longestLineLength) and maxLength or Bingo.longestLineLength
-    maxLength = 0
-    length = 0
-end
-
----------- 渲染相关 ----------
-
-
-function Bingo:setPosition()
-    Bingo.renderPosition = Isaac.WorldToRenderPosition(Vector(320, 150))
-    if Bingo.taskSelectionEnable then
-        Bingo.renderPositionOfTasks = Isaac.WorldToRenderPosition(Vector(100, 200))
-    else
-        Bingo.renderPositionOfTasks = Isaac.WorldToRenderPosition(Vector(100, 420))
-    end
-end
-
+-- 功能：展示任务图及其完成情况
 function Bingo:tasksIconRender()
     if Bingo.gameIsStarted == true or Bingo.readMapTimeIsStarted then
         if not Bingo.taskSelectionEnable then
@@ -1098,19 +635,506 @@ function Bingo:tasksIconRender()
     end
 end
 
--- 测试任务用
-function Bingo:testTaskRender()
-    if Bingo.gameIsStarted and Bingo.enableDebugTask then
-        Bingo.test.task.taskIcon:SetFrame("task", 0)
-        Bingo.test.task.taskIcon:Render(Vector(100, 100))
-        if Bingo.test.task.isAchieved then
-            Bingo.finishIcon:SetFrame("Finish1", 0)
-            Bingo.finishIcon:Render(Vector(100, 100))
-        end
+-- 功能：维护【renderPosition】和【renderPositionOfTasks】，保证缩放窗口时坐标与新窗口对应坐标一致
+function Bingo:setPosition()
+    Bingo.renderPosition = Isaac.WorldToRenderPosition(Vector(320, 150))
+    if Bingo.taskSelectionEnable then
+        Bingo.renderPositionOfTasks = Isaac.WorldToRenderPosition(Vector(100, 200))
+    else
+        Bingo.renderPositionOfTasks = Isaac.WorldToRenderPosition(Vector(100, 420))
     end
 end
 
--- 当玩家击败结局boss时，生成重开的道具并阻止可能的结局动画播放
+-- -------------------------------------------------------
+-- 子分类：游戏状态相关函数
+-- -------------------------------------------------------
+
+-- 功能：在每局游戏新开始前时初始化所有变量
+function Bingo:gameInitialize(isContinued)
+    Bingo.player = Isaac.GetPlayer(0)
+    Bingo.game = Game()
+    Bingo.finalBossPtr.type = nil
+    Bingo.finalBossPtr.variant = nil
+    Bingo.finalBossPtr.ref = nil
+    if Bingo.newStart == true then
+        roomIdParts = {}
+        partsSeed = {}
+        Bingo.ws = nil
+        Bingo.newStart = false
+        Bingo.playerIndex = 0
+        Bingo.gameMode = 0
+        Bingo.LIMITED_TIME=45
+        Bingo.lives = 2
+        Bingo.timerNew = 0
+        Bingo.timerStart = 0
+        Bingo.gameTime = 0
+        Bingo.gameTimeForShow.minute = "00"
+        Bingo.gameTimeForShow.second = "00"
+        Bingo.gameIsPaused = false
+        Bingo.puaseTime = 0
+        Bingo.continuedTime = 0
+        Bingo.readMapTime = 0
+        Bingo.readMapTimeIsStarted = false
+        Bingo.timerForReadMapNew = 0
+        Bingo.timerForReadMapStart = 0
+        Bingo.gameIsOver = 0
+        Bingo.game:GetSeeds():ClearSeedEffects()
+        Isaac.ExecuteCommand("seed " .. (Game():GetSeeds():GetStartSeedString()))
+        -----startMenu-----
+        Bingo.startMenu:Load("mods/" .. MOD_FOLDER_NAME .. "/resources/" .. CUSTOM_FONT_FILE_PATH)
+        Bingo.selectArrow:Load("gfx/ui/select_arrow.anm2", true)
+        Bingo.gameIsStarted = false
+        Bingo.startMenuRootSelect = 1
+        Bingo.startMenuSelectOfSingle = 1
+        Bingo.enableSpecialMode = false
+        Bingo.enableTimeLimit = true
+        Bingo.startSignal = 0
+        Bingo.meunIsChanged = false
+        Bingo.selectArrow:SetFrame("Select", 0)
+        Bingo.selectArrow:Render(Vector(Bingo.renderPosition.X + Bingo.FONT_OFFSET * 3,
+            Bingo.renderPosition.Y + Bingo.FONT_OFFSET * 3 + 4))
+        -----tasks-----
+        Bingo.finishIcon:Load("gfx/ui/finish_icon.anm2", true)
+        Bingo.taskSelection:Load("gfx/ui/task_select.anm2", true)
+        Bingo.tasksBackground:Load("gfx/ui/tasks_background.anm2", true)
+        Bingo.taskMargin:Load("gfx/ui/tab_task_margin.anm2", true)
+        Bingo.taskSelectionPosition.X = 0
+        Bingo.taskSelectionPosition.Y = 0
+        Bingo.taskSelectionEnable = false
+        Bingo.randomTasksQueue = {}
+        itemPoolOfPickedUpActive = {}
+        Bingo.finishTasksNum = 0
+        Bingo.longestLineLength = 0
+
+        Bingo.seedForShow = Bingo.game:GetSeeds():GetStartSeedString()
+    end
+end
+
+-- 功能：出该局就会重置整局
+-- 需要修改
+function Bingo:resetWhenExit(ShouldSave)
+    if ShouldSave then
+        Bingo.newStart = true
+        Bingo.gameIsStarted = false
+        if IsaacSocket and Bingo.ws ~= nil then
+            Bingo.ws.Close(1000, "成功关闭连接")
+        end
+        if next(Bingo.map, nil) ~= nil then
+            for i = 1, 5, 1 do
+                for j = 1, 5, 1 do
+                    Bingo.map[i][j] = nil;
+                end
+            end
+        end
+        for key, value in pairs(Bingo.mapForCallBacks) do
+            Bingo.mapForCallBacks[key] = {}
+        end
+        Bingo.map = {}
+        -- 测试任务用
+        test = nil
+    end
+end
+
+-- 功能：玩家彻底死亡时，生命-1；当生命<=0时设置状态【gameIsOver】为2；若多人组队模式则有罚时
+--- @param IsGameOver boolean - 判断玩家是否彻底死亡
+function Bingo:playerDeath(IsGameOver)
+    if Bingo.lives > 0 and IsGameOver then
+        Bingo.lives = Bingo.lives - 1
+        Bingo.continuedTime = Bingo.gameTime;
+        -- 在多人组队模式下死亡有罚时剩余时间的30%
+        if Bingo.enableCooperatedMode then
+            Bingo.LIMITED_TIME=Bingo.LIMITED_TIME-math.floor((Bingo.LIMITED_TIME-Bingo.gameTime/60000)*0.30)
+        end
+    end
+    if Bingo.lives <= 0 and IsGameOver then
+        Bingo.gameIsOver = 2
+    end
+end
+
+-- 功能：玩家时间耗尽时设置状态【gameIsOver】为2
+function Bingo:timeIsOver()
+    if Bingo.gameTime >= Bingo.LIMITED_TIME * 60 * 1000 and Bingo.enableTimeLimit then
+        Bingo.gameIsOver = 2
+    end
+end
+
+-- 功能：玩家任务图连成合法的5格线时设置状态【gameIsOver】为1
+function Bingo:winAct()
+    if Bingo.longestLineLength == 5 then
+        Bingo.gameIsOver = 1
+    end
+end
+
+-- -------------------------------------------------------
+-- 子分类：时间相关函数
+-- -------------------------------------------------------
+
+-- 功能：设置用于展示的游戏时间【gameTime】和读图时间【readMapTime】
+function Bingo:setGameTimeForShow()
+    local time = Bingo.gameTime // 1000
+    local readMapTime = (Bingo.READMAPTIMELIMIT - Bingo.readMapTime) // 1000
+    if time // 60 >= 0 and time // 60 <= 9 then
+        Bingo.gameTimeForShow.minute = "0" .. time // 60
+    else
+        Bingo.gameTimeForShow.minute = time // 60
+    end
+    if time % 60 >= 0 and time % 60 <= 9 then
+        Bingo.gameTimeForShow.second = "0" .. time % 60
+    else
+        Bingo.gameTimeForShow.second = time % 60
+    end
+    -- 读图时间
+    if readMapTime // 60 >= 0 and readMapTime // 60 <= 9 then
+        Bingo.readMapTimeForShow.minute = "0" .. readMapTime // 60
+    else
+        Bingo.readMapTimeForShow.minute = readMapTime // 60
+    end
+    if readMapTime % 60 >= 0 and readMapTime % 60 <= 9 then
+        Bingo.readMapTimeForShow.second = "0" .. readMapTime % 60
+    else
+        Bingo.readMapTimeForShow.second = readMapTime % 60
+    end
+end
+
+--rewrite the logic of pressing key-R to restart the game
+function Bingo:keyrRestart()
+    if Input.IsActionTriggered(ButtonAction.ACTION_RESTART, Bingo.player.ControllerIndex) and Input.IsActionPressed(ButtonAction.ACTION_MAP, Bingo.player.ControllerIndex) then
+        Bingo.newStart = true
+        Isaac.ExecuteCommand("restart")
+    end
+end
+
+-- 功能：计算模组提供的gameTime和readMapTime(不是游戏本体的计时器TimeCounter)
+function Bingo:countTime()
+    if (not Bingo.gameIsPaused) and Bingo.gameIsStarted == true and Bingo.gameIsOver == 0 then
+        Bingo.timerNew = Isaac.GetTime()
+        Bingo.gameTime = Bingo.gameTime + Bingo.timerNew - Bingo.timerStart
+        Bingo.timerStart = Isaac.GetTime()
+    elseif Bingo.gameIsPaused and Bingo.gameIsStarted and Bingo.gameIsOver == 0 then
+        Bingo.timerStart = Isaac.GetTime()
+        Bingo.timerNew = Isaac.GetTime()
+    end
+    -- 专门为多人对战模式设计的读图时间
+    if Bingo.readMapTimeIsStarted and Bingo.gameMode == 1 and (not Bingo.gameIsStarted) and Bingo.gameIsOver == 0 and Bingo.readMapTime < Bingo.READMAPTIMELIMIT then
+        Bingo.timerForReadMapNew = Isaac.GetTime()
+        Bingo.readMapTime = Bingo.readMapTime + Bingo.timerForReadMapNew - Bingo.timerForReadMapStart
+        Bingo.timerForReadMapStart = Isaac.GetTime()
+    end
+end
+
+-- 功能：暂停游戏
+function Bingo:pauseGame()
+    if ((Input.IsActionTriggered(ButtonAction.ACTION_DROP, Bingo.player.ControllerIndex) and Input.IsActionPressed(ButtonAction.ACTION_MAP, Bingo.player.ControllerIndex)) or
+            Input.IsButtonTriggered(Keyboard.KEY_F4, 114514) or
+            (Input.IsActionTriggered(ButtonAction.ACTION_MAP, Bingo.player.ControllerIndex) and Input.IsActionPressed(ButtonAction.ACTION_DROP, Bingo.player.ControllerIndex))) and Bingo.gameIsPaused == false and Bingo.gameMode == 0 then
+        Bingo.puaseTime = Bingo.game.TimeCounter
+        Bingo.gameIsPaused = true
+        Bingo.player.ControlsEnabled = false
+        return
+    elseif ((Input.IsActionTriggered(ButtonAction.ACTION_DROP, Bingo.player.ControllerIndex) and Input.IsActionPressed(ButtonAction.ACTION_MAP, Bingo.player.ControllerIndex)) or
+            Input.IsButtonTriggered(Keyboard.KEY_F4, 114514) or
+            (Input.IsActionTriggered(ButtonAction.ACTION_MAP, Bingo.player.ControllerIndex) and Input.IsActionPressed(ButtonAction.ACTION_DROP, Bingo.player.ControllerIndex))) and Bingo.gameIsPaused == true and Bingo.gameMode == 0 then
+        Bingo.gameIsPaused = false
+        Bingo.player.ControlsEnabled = true
+        return
+    end
+end
+
+-- 功能：暂停游戏时将游戏时间TimeCounter和模组当前时间puaseTime保持一致，即暂停游戏时间TimeCounter
+function Bingo:setPauseTime()
+    if Bingo.gameIsPaused then
+        Bingo.game.TimeCounter = Bingo.puaseTime
+    end
+end
+
+-- 功能：游戏内置的暂停生效时保证游戏内置时间继续（保证凹凸和bossrush的时间和gameTime一致）
+function Bingo:setTimeCounterContinued()
+    if Bingo.game:IsPaused()
+    then
+        Bingo.game.TimeCounter = math.floor((Bingo.gameTime - Bingo.continuedTime) * 0.03)
+    end
+end
+
+-- -------------------------------------------------------
+-- 子分类：任务图相关函数
+-- -------------------------------------------------------
+
+-- 功能：执行【mapForCallBacks】中的函数，即按照任务对应回调类型按循环执行对应的函数
+Bingo.mapForCallBacksFunc = {
+    [ModCallbacks.MC_POST_UPDATE] = function()
+        if Bingo.gameIsStarted then
+            for key, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_POST_UPDATE]) do
+                for index, valueFunc in ipairs(value[2]) do
+                    valueFunc(value[1])
+                end
+            end
+        end
+    end,
+    [ModCallbacks.MC_POST_RENDER] = function()
+        if Bingo.gameIsStarted then
+            for key, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_POST_RENDER]) do
+                for index, valueFunc in ipairs(value[2]) do
+                    valueFunc(value[1])
+                end
+            end
+        end
+    end,
+    [ModCallbacks.MC_POST_NEW_LEVEL] = function()
+        if Bingo.gameIsStarted then
+            for _, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_POST_NEW_LEVEL]) do
+                for index, valueFunc in ipairs(value[2]) do
+                    valueFunc(value[1])
+                end
+            end
+        end
+    end,
+    [ModCallbacks.MC_ENTITY_TAKE_DMG] = function(_, entity, amount, damageFlags, source, countdownFrames)
+        if Bingo.gameIsStarted then
+            for _, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_ENTITY_TAKE_DMG]) do
+                for index, valueFunc in ipairs(value[2]) do
+                    valueFunc(value[1], entity, amount, damageFlags, source, countdownFrames)
+                end
+            end
+        end
+    end,
+    [ModCallbacks.MC_USE_CARD] = function()
+        if Bingo.gameIsStarted then
+            for _, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_USE_CARD]) do
+                for index, valueFunc in ipairs(value[2]) do
+                    valueFunc(value[1])
+                end
+            end
+        end
+    end,
+    [ModCallbacks.MC_PRE_PICKUP_COLLISION] = function(_, pickup, collider, low)
+        if Bingo.gameIsStarted then
+            for _, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_PRE_PICKUP_COLLISION]) do
+                for index, valueFunc in ipairs(value[2]) do
+                    valueFunc(value[1], pickup, collider, low)
+                end
+            end
+        end
+    end,
+    [ModCallbacks.MC_USE_PILL] = function()
+        if Bingo.gameIsStarted then
+            for _, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_USE_PILL]) do
+                for index, valueFunc in ipairs(value[2]) do
+                    valueFunc(value[1])
+                end
+            end
+        end
+    end,
+    [ModCallbacks.MC_POST_ENTITY_KILL] = function(_, entity)
+        if Bingo.gameIsStarted then
+            for _, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_POST_ENTITY_KILL]) do
+                for index, valueFunc in ipairs(value[2]) do
+                    valueFunc(value[1], entity)
+                end
+            end
+        end
+    end,
+    [ModCallbacks.MC_USE_ITEM] = function()
+        if Bingo.gameIsStarted then
+            for _, value in pairs(Bingo.mapForCallBacks[ModCallbacks.MC_USE_ITEM]) do
+                for index, valueFunc in ipairs(value[2]) do
+                    valueFunc(value[1])
+                end
+            end
+        end
+    end
+}
+
+-- 功能：检查任务节点之间是否矛盾
+--- @param taskRandomIndex integer - 新生成的任务的序号（此时新生成的任务表尚未初始化）
+--- @param taskExistIndex table - 已经在bingo图上的任务
+--- @return boolean - true为矛盾，false 为不矛盾
+local function isTasksConflicted(taskRandomIndex, taskExistIndex)
+    if taskExistIndex.conflictTasks == nil then
+        return false
+    end
+    for _, value in ipairs(taskExistIndex.conflictTasks) do
+        if taskRandomIndex == value then
+            return true
+        end
+    end
+    return false
+end
+-- 功能：检查该任务节点和角色之间是否矛盾
+--- @param taskRandomIndex integer - 新生成的任务的序号（此时新生成的任务表尚未初始化）
+--- @param playerType table - 角色对应的矛盾任务表
+--- @return boolean - true为矛盾，false为不矛盾
+local function isTaskConflictWithCharacter(taskRandomIndex, playerType)
+    local playerNum = tonumber(Bingo.player:GetPlayerType())
+    if playerType["c" .. playerNum] == nil then
+        return false
+    else
+        for _, value in ipairs(playerType["c" .. playerNum]) do
+            if taskRandomIndex == value then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+-- 功能：检查该节点是否为合法节点（是否与已有节点重复？是否与已有节点矛盾？是否与角色矛盾？）
+-- 待完善：两条对角线上节点的判断
+--- @param row integer - 新生成的任务在表上的列位置
+--- @param col integer - 新生成的任务在表上的行位置
+--- @param taskIndex integer - 新生成的任务的序号
+--- @param mode integer - 模式，1时才检查任务是否其他任务矛盾
+--- @return boolean - true为任务合法，false为任务不合法
+local function isTaskNoProblem(row, col, taskIndex, mode)
+    -- 检查该任务是否与角色冲突
+    if isTaskConflictWithCharacter(taskIndex, Bingo.tasks[1]) then
+        return false
+    end
+    -- 检查是否与地图上已有节点重复
+    -- 检查完整生成的行
+    for i = 1, row - 1, 1 do
+        for j = 1, 5, 1 do
+            if taskIndex == Bingo.map[i][j].task.taskIndex then
+                return false
+            end
+        end
+    end
+    -- 检查残缺的行
+    for i = 1, col - 1, 1 do
+        if taskIndex == Bingo.map[row][i].task.taskIndex then
+            return false
+        end
+    end
+    -- 检查该节点是否与其他节点矛盾
+    if mode == 1 then
+        -- 检查这一行是否有矛盾的元素
+        for i = 1, col - 1, 1 do
+            if isTasksConflicted(taskIndex, Bingo.map[row][i]) then
+                return false
+            end
+        end
+        -- 检索这一列有没有矛盾的元素
+        for i = 1, row - 1, 1 do
+            if isTasksConflicted(taskIndex, Bingo.map[i][col]) then
+                return false
+            end
+        end
+    end
+    return true
+end
+
+-- 功能：生成bingo图
+function Bingo:createBingoMap()
+    local taskIndex = 0
+    for row = 1, 5, 1 do
+        Bingo.map[row] = {}
+        for col = 1, 5, 1 do
+            local searchTime = 0
+            local mode = 1
+            --for debug
+            local debugtime = 0
+            taskIndex = math.random(1, Bingo.TASKS_COUNT)
+            print("map num: ",taskIndex)
+            while (not isTaskNoProblem(row, col, taskIndex, mode)) do
+                taskIndex = math.random(1, Bingo.TASKS_COUNT)
+                searchTime = searchTime + 1
+                debugtime = debugtime + 1
+                if searchTime >= Bingo.TASKS_COUNT then
+                    mode = 0
+                end
+                if debugtime >= 1000000000 then
+                    print("break")
+                    break
+                end
+            end
+            Bingo.map[row][col] = Bingo.tasks["task" .. taskIndex]()
+            if Bingo.map[row][col] == nil then
+                print("nil")
+            end
+            Bingo.map[row][col].task.taskIcon:Load("gfx/tasks/task" .. taskIndex .. ".anm2", true)
+            Bingo.map[row][col].task.renderXOffset = col - 1
+            Bingo.map[row][col].task.renderYOffset = row - 1
+            Bingo.tasks.setTaskForCallback(Bingo.map[row][col])
+        end
+    end
+    --如果当前生成节点所在的位置在主对角线上，检索有无矛盾元素
+end
+
+-- 功能：更新完成任务数和最长连线长度信息
+--- @param taskX integer - 任务在表上的行位置
+--- @param taskY integer - 任务在表上的列位置
+function Bingo:getMapConfig(taskX, taskY)
+    local length = 0
+    local maxLength = 0
+    --row
+    for i = 1, 5, 1 do
+        if Bingo.map[i][taskX + 1].task.isAchieved and (Bingo.map[i][taskX + 1].task.achieveBy == Bingo.playerIndex or
+                (Bingo.enableCooperatedMode and CooperatedModeColor[Bingo.map[i][taskX + 1].task.achieveBy] == CooperatedModeColor[Bingo.playerIndex])) then
+            length = length + 1
+        else
+            length = 0
+        end
+        if length > maxLength then
+            maxLength = length
+        end
+    end
+    Bingo.longestLineLength = (maxLength > Bingo.longestLineLength) and maxLength or Bingo.longestLineLength
+    maxLength = 0
+    length = 0
+    --col
+    for i = 1, 5, 1 do
+        if Bingo.map[taskY + 1][i].task.isAchieved and (Bingo.map[taskY + 1][i].task.achieveBy == Bingo.playerIndex or
+                (Bingo.enableCooperatedMode and CooperatedModeColor[Bingo.map[taskY + 1][i].task.achieveBy] == CooperatedModeColor[Bingo.playerIndex])) then
+            length = length + 1
+        else
+            length = 0
+        end
+        if length > maxLength then
+            maxLength = length
+        end
+    end
+    Bingo.longestLineLength = (maxLength > Bingo.longestLineLength) and maxLength or Bingo.longestLineLength
+    maxLength = 0
+    length = 0
+    --diag
+    if taskX == taskY then
+        for i = 1, 5, 1 do
+            if Bingo.map[i][i].task.isAchieved and (Bingo.map[i][i].task.achieveBy == Bingo.playerIndex or
+                    (Bingo.enableCooperatedMode and CooperatedModeColor[Bingo.map[i][i].task.achieveBy] == CooperatedModeColor[Bingo.playerIndex])) then
+                length = length + 1
+            else
+                length = 0
+            end
+            if length > maxLength then
+                maxLength = length
+            end
+        end
+    end
+    Bingo.longestLineLength = (maxLength > Bingo.longestLineLength) and maxLength or Bingo.longestLineLength
+    maxLength = 0
+    length = 0
+    if taskX + taskY == 4 then
+        for i = 1, 5, 1 do
+            if Bingo.map[6 - i][i].task.isAchieved and (Bingo.map[6 - i][i].task.achieveBy == Bingo.playerIndex or
+                    (Bingo.enableCooperatedMode and CooperatedModeColor[Bingo.map[6 - i][i].task.achieveBy] == CooperatedModeColor[Bingo.playerIndex])) then
+                length = length + 1
+            else
+                length = 0
+            end
+            if length > maxLength then
+                maxLength = length
+            end
+        end
+    end
+    Bingo.longestLineLength = (maxLength > Bingo.longestLineLength) and maxLength or Bingo.longestLineLength
+    maxLength = 0
+    length = 0
+end
+
+-- -------------------------------------------------------
+-- 子分类：RestartKey道具相关函数
+-- -------------------------------------------------------
+
+-- 功能：当玩家击败结局boss时，生成重开的道具并阻止可能的结局动画播放
 function Bingo:killFinalBosses()
     local entityList = Isaac.GetRoomEntities();
     for _, value in ipairs(entityList) do
@@ -1137,6 +1161,7 @@ function Bingo:killFinalBosses()
     end
 end
 
+-- 功能：RestartKey功能实现
 function Bingo:restartKeyUse()
     if Bingo.lives > 0 then
         Isaac.ExecuteCommand("restart")
@@ -1148,8 +1173,32 @@ function Bingo:restartKeyUse()
     end
 end
 
+-- -------------------------------------------------------
+-- 子分类：测试、调试用
+-- -------------------------------------------------------
+
+-- 功能：测试任务用
+function Bingo:testTaskRender()
+    if Bingo.gameIsStarted and Bingo.enableDebugTask then
+        Bingo.test.task.taskIcon:SetFrame("task", 0)
+        Bingo.test.task.taskIcon:Render(Vector(100, 100))
+        if Bingo.test.task.isAchieved then
+            Bingo.finishIcon:SetFrame("Finish1", 0)
+            Bingo.finishIcon:Render(Vector(100, 100))
+        end
+    end
+end
+
+-- =======================================================
+-- 【程序入口】：Bingo模组初始化
+-- =======================================================
+
+-- 初始化随机数种子
 math.randomseed(Random())
+-- 初始化用户id
 Bingo.userId = Bingo.setUserId()
+
+-- 将各类方法加入到对应的回调之中
 
 Bingo:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, Bingo.gameInitialize)
 Bingo:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, Bingo.resetWhenExit)
