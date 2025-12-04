@@ -246,8 +246,21 @@ local function CallbackOnMessage(message, isBinary)
                     Bingo.finishTasksNum = Bingo.finishTasksNum + 1
                 else
                     Bingo.tasks.achieveSound:Play(579, 20)
+                    local groupIndex = Bingo.playerIndex
+                    if Bingo.enableCooperatedMode then
+                        if groupIndex == 2 then
+                            groupIndex = 1
+                        elseif groupIndex == 4 then
+                            groupIndex = 3
+                        end
+                    end
+                    if gameStartTable.data.achieveBy == groupIndex then
+                        Game():GetHUD():ShowItemText("任务完成！（队友）",
+                            Bingo.map[gameStartTable.data.row + 1][gameStartTable.data.col + 1].task.description)
+                    else
                         Game():GetHUD():ShowItemText("对手完成了任务",
-                        Bingo.map[gameStartTable.data.row + 1][gameStartTable.data.col + 1].task.description)
+                            Bingo.map[gameStartTable.data.row + 1][gameStartTable.data.col + 1].task.description)
+                    end
                 end
             end
         end
