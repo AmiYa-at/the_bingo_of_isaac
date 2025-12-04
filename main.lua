@@ -1,6 +1,6 @@
 StartDebug()
 Bingo = RegisterMod("Bingo", 1)
-Bingo.version = "5.9"
+Bingo.version = "5.11"
 
 -- =======================================================
 -- 【全局游戏】：一些全局量
@@ -11,6 +11,7 @@ Bingo.game = Game()
 Bingo.level = Bingo.game:GetLevel()
 Bingo.userId = ""                  -- 用于多人模式在本地构建一个足够随机的id来表征身份
 Bingo.roomId = ""                  -- 用于存储多人模式当前游玩的房间号
+Bingo.saveData=""                  -- 存档信息
 
 -- =======================================================
 --【计时变量】：计时器，游戏时间限时，用于展示的时间，用于启动特殊计时模式
@@ -74,7 +75,10 @@ local CUSTOM_FONT_FILE_PATH = "font/eid9/eid9_9px.fnt" -- 字体文件位置，�
 -- =======================================================
 
 Bingo.tasks = require("tasks")     -- 导入任务模块【tasks.lua】
-Bingo.renderPositionOfTasks = Isaac.WorldToRenderPosition(Vector(100, 420)) -- 任务图渲染的基坐标，所有的任务渲染界面都围绕这个坐标
+Bingo.POSITION_OF_TASKS=Isaac.WorldToRenderPosition(Vector(100, 420)) -- 任务缩略图渲染基座标【renderPositionOfTasks】的默认坐标
+Bingo.POSITION_OF_SCALED_TASKS=Isaac.WorldToRenderPosition(Vector(100, 200)) -- 任务放大图渲染基座标【renderPositionOfTasks】的默认坐标
+Bingo.renderPositionOfTasks = Bingo.POSITION_OF_TASKS -- 任务图渲染的基坐标，所有的任务渲染界面都围绕这个坐标
+Bingo.distanceBetweenMouseAndTaskBasePosition=Vector(0,0) -- 鼠标光标和任务图渲染基座标【renderPositionOfTasks】之间的X和Y的距离，用于移动任务图
 Bingo.finishIcon = Sprite()        -- 完成任务的标识图案
 Bingo.taskSelection = Sprite()     -- 选择任务的光标
 Bingo.tasksBackground = Sprite()   -- 任务图背景图
@@ -630,8 +634,6 @@ function Bingo:tasksIconRender()
             if Bingo.taskSelectionPosition.Y >= 1 and Input.IsActionTriggered(ButtonAction.ACTION_SHOOTUP, Bingo.player.ControllerIndex) then
                 Bingo.taskSelectionPosition.Y = Bingo.taskSelectionPosition.Y - 1
             end
-        else
-            Bingo.renderPositionOfTasks = Isaac.WorldToRenderPosition(Vector(100, 420 + (99 - Options.MaxScale) / 2))
         end
         local taskSelected = Bingo.map[Bingo.taskSelectionPosition.Y + 1][Bingo.taskSelectionPosition.X + 1]
         if Bingo.taskSelectionEnable then
@@ -668,11 +670,23 @@ end
 
 -- 功能：维护【renderPosition】和【renderPositionOfTasks】，保证缩放窗口时坐标与新窗口对应坐标一致
 function Bingo:setPosition()
-    Bingo.renderPosition = Isaac.WorldToRenderPosition(Vector(320, 150))
     if Bingo.taskSelectionEnable then
-        Bingo.renderPositionOfTasks = Isaac.WorldToRenderPosition(Vector(100, 200))
+        Bingo.renderPositionOfTasks = Bingo.POSITION_OF_SCALED_TASKS
     else
-        Bingo.renderPositionOfTasks = Isaac.WorldToRenderPosition(Vector(100, 420))
+        -- 获取鼠标在屏幕上的渲染坐标
+        local mousePosition=Input.GetMousePosition(true)
+        mousePosition=Isaac.WorldToRenderPosition(mousePosition)
+        --print(mousePosition.X,"  ",mousePosition.Y)
+        if not Input.IsMouseBtnPressed(1) then
+            Bingo.distanceBetweenMouseAndTaskBasePosition=Vector(mousePosition.X-Bingo.renderPositionOfTasks.X,mousePosition.Y-Bingo.renderPositionOfTasks.Y)
+        end
+        -- 如果鼠标正在右键且鼠标点击到了bingo缩略图的区域，则可以移动缩略图
+        if Input.IsMouseBtnPressed(Mouse.MOUSE_BUTTON_2) and mousePosition.X>=Bingo.POSITION_OF_TASKS.X-3 and mousePosition.X<=Bingo.POSITION_OF_TASKS.X+56 and
+        mousePosition.Y>=Bingo.POSITION_OF_TASKS.Y-3 and mousePosition.Y<=Bingo.POSITION_OF_TASKS.Y+56 then
+            Bingo.POSITION_OF_TASKS.X=mousePosition.X-Bingo.distanceBetweenMouseAndTaskBasePosition.X
+            Bingo.POSITION_OF_TASKS.Y=mousePosition.Y-Bingo.distanceBetweenMouseAndTaskBasePosition.Y
+        end
+        Bingo.renderPositionOfTasks = Bingo.POSITION_OF_TASKS
     end
 end
 

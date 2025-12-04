@@ -2491,7 +2491,7 @@ local function task72Method(task)
     local stage = Bingo.game:GetLevel():GetStage()
     local room = Bingo.game:GetLevel():GetCurrentRoomDesc()
     if stage == LevelStage.STAGE7 and room.Data.Type == RoomType.ROOM_BOSS and
-        Isaac.CountEntities(nil, EntityType.ENTITY_DELIRIUM, 0, 0) then
+        Isaac.CountEntities(nil, EntityType.ENTITY_DELIRIUM, 0, 0)>0 then
         task.detailedTaskPart.deliriumRoom = room.ListIndex
     end
     if Bingo.game:GetLevel():GetCurrentRoomDesc().ListIndex == task.detailedTaskPart.deliriumRoom and
