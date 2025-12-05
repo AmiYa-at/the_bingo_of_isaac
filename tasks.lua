@@ -99,21 +99,21 @@ local specialModeReward = {
 
 -- 任务描述表
 local taskDescriptionList = {
-    [1] = "在天使房拿1个天使房底座道具或交易道具",
-    [2] = "在恶魔房拿3个恶魔房底座道具或交易道具",
+    [1] = "在天使房拿1个天使房道具",
+    [2] = "在恶魔房拿3个恶魔房道具",
     [3] = "拥有死亡证明",
     [4] = "拥有饰品A+",
     [5] = "针套",
-    [6] = "在隐藏房拿1个底座道具或交易道具",
-    [7] = "在红隐藏房拿1个底座道具或交易道具",
-    [8] = "拿1个0级底座道具或交易道具",
-    [9] = "拿1个4级底座道具或交易道具",
-    [10] = "射速>=7",
-    [11] = "钥匙数量>=30",
-    [12] = "金币数量>=99",
-    [13] = "炸弹数量>=30",
+    [6] = "在隐藏房拿1个道具",
+    [7] = "在红隐藏房拿1个道具",
+    [8] = "拿1个0级道具",
+    [9] = "拿1个4级道具",
+    [10] = "射速≥7",
+    [11] = "钥匙数量≥30",
+    [12] = "金币数量≥99",
+    [13] = "炸弹数量≥30",
     [14] = "猫套",
-    [15] = "在星象房拿1个星象房底座道具或交易道具",
+    [15] = "在星象房拿1个星象房道具",
     [16] = "碎心数量≥4",
     [17] = "拥有R键",
     [18] = "当前房间底座数量≥6",
@@ -2142,7 +2142,7 @@ end
 local function consumeEnoughPickups(task)
     local currentNum = task.detailedTaskPart.currentNum
     local targetPickup = task.detailedTaskPart.targetPickup()
-    if currentNum > targetPickup then
+    if currentNum-1== targetPickup then
         task.detailedTaskPart.achieveCount = task.detailedTaskPart.achieveCount + (currentNum - targetPickup)
     end
     task.detailedTaskPart.currentNum = targetPickup

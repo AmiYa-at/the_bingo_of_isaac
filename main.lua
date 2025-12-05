@@ -9,28 +9,28 @@ Bingo.version = "5.11"
 Bingo.player = Isaac.GetPlayer(0)
 Bingo.game = Game()
 Bingo.level = Bingo.game:GetLevel()
-Bingo.userId = ""                  -- 用于多人模式在本地构建一个足够随机的id来表征身份
-Bingo.roomId = ""                  -- 用于存储多人模式当前游玩的房间号
-Bingo.saveData=""                  -- 存档信息
+Bingo.userId = "" -- 用于多人模式在本地构建一个足够随机的id来表征身份
+Bingo.roomId = "" -- 用于存储多人模式当前游玩的房间号
+Bingo.saveData = "" -- 存档信息
 
 -- =======================================================
 --【计时变量】：计时器，游戏时间限时，用于展示的时间，用于启动特殊计时模式
 -- =======================================================
 
-Bingo.LIMITED_TIME = 45            -- 游戏时间限时，在多人组队模式限时为35min，且罚时
-Bingo.READMAPTIMELIMIT = 180000    -- 多人对战模式的读图时间限制，默认为180000毫秒（3min）
-Bingo.timerNew = 0                 -- 计时器运行时计时循环的新开始，用于存储新的循环帧的时间，用于与前一循环帧时间【Bingo.timerStart】相减算出两帧间流逝的时间
-Bingo.timerStart = 0               -- 存储上一循环帧对应的计算机时间
-Bingo.gameTime = 0                 -- 游戏正式开始时的计时器
+Bingo.LIMITED_TIME = 45                                     -- 游戏时间限时，在多人组队模式限时为35min，且罚时
+Bingo.READMAPTIMELIMIT = 180000                             -- 多人对战模式的读图时间限制，默认为180000毫秒（3min）
+Bingo.timerNew = 0                                          -- 计时器运行时计时循环的新开始，用于存储新的循环帧的时间，用于与前一循环帧时间【Bingo.timerStart】相减算出两帧间流逝的时间
+Bingo.timerStart = 0                                        -- 存储上一循环帧对应的计算机时间
+Bingo.gameTime = 0                                          -- 游戏正式开始时的计时器
 Bingo.puaseTime = 0
-Bingo.continuedTime = 0            -- 在彻底死亡或使用RestartKey道具时，记录此时的计时器时间（用于维护游戏本体计时器【TimeCounter】的时间与正常游戏时一致）
-Bingo.gameTimeForShow = { minute = "00", second = "00" } -- 用于展示游戏计时器的时间
+Bingo.continuedTime = 0                                     -- 在彻底死亡或使用RestartKey道具时，记录此时的计时器时间（用于维护游戏本体计时器【TimeCounter】的时间与正常游戏时一致）
+Bingo.gameTimeForShow = { minute = "00", second = "00" }    -- 用于展示游戏计时器的时间
 Bingo.readMapTimeForShow = { minute = "00", second = "00" } -- 在多人组队模式用于展示读图时间
-Bingo.readMapTime = 0              -- 专门为多人对战模式设计的读图时间
-Bingo.readMapTimeIsStarted = false -- 用于判断读图时间是否开始
-Bingo.timerForReadMapNew = 0       -- 读图计时器运行时计时循环的新开始，用于存储新的循环帧的时间，用于与前一循环帧相减算出两帧间流逝的读图时间
-Bingo.gameIsPaused = false         -- 用于判断游戏是否暂停
-Bingo.timerForReadMapStart = 0     -- 读图时存储上一循环帧对应的计算机时间
+Bingo.readMapTime = 0                                       -- 专门为多人对战模式设计的读图时间
+Bingo.readMapTimeIsStarted = false                          -- 用于判断读图时间是否开始
+Bingo.timerForReadMapNew = 0                                -- 读图计时器运行时计时循环的新开始，用于存储新的循环帧的时间，用于与前一循环帧相减算出两帧间流逝的读图时间
+Bingo.gameIsPaused = false                                  -- 用于判断游戏是否暂停
+Bingo.timerForReadMapStart = 0                              -- 读图时存储上一循环帧对应的计算机时间
 
 -- ========================================================
 -- 【游戏状态】：生命数，游戏模式等状态变量
@@ -55,18 +55,18 @@ local CooperatedModeColor = { color.RED, color.RED, color.BLUE, color.BLUE } -- 
 -- 【UI相关】：选项选择，文字展示等相关变量
 -- ========================================================
 
-Bingo.selectArrow = Sprite()       -- 主界面选项选择的箭头图标
-Bingo.startMenu = Font()           -- 管理所有文字的变量，用于打印字体在界面上
+Bingo.selectArrow = Sprite() -- 主界面选项选择的箭头图标
+Bingo.startMenu = Font() -- 管理所有文字的变量，用于打印字体在界面上
 Bingo.renderPosition = Isaac.WorldToRenderPosition(Vector(320, 150)) -- 主界面渲染的基坐标，所有的主界面文字渲染围绕这个这个坐标
 Bingo.nameAndVersion = "以撒宾果mod ver" .. Bingo.version .. "by Amiya9212" -- 主界面的模组作者和作者
 Bingo.startMenuRootString = { "单人模式", "对战模式", "DR模式" } -- 主界面一级选项
 Bingo.startMenuStringOfSingle = { "随便开把", "种子生图", "趣味模式", "限时模式" } -- 主界面单人模式的二级选项
 Bingo.startMenuStringOfBattle = "输入房间号: " -- 主界面多人模式的二级选项
-Bingo.startMenuRootSelect = 0      -- 主界面一级选项选择的选项
-Bingo.startMenuSelectOfSingle = 0  -- 主界面单人模式二级选项选择的选项
-Bingo.meunIsChanged = false        -- 判断是否从一级选项界面跳转到二级选项界面
-Bingo.seedForShow = ""             -- 展示当局游戏的种子
-Bingo.FONT_OFFSET = 9              -- 文字大小的常量
+Bingo.startMenuRootSelect = 0 -- 主界面一级选项选择的选项
+Bingo.startMenuSelectOfSingle = 0 -- 主界面单人模式二级选项选择的选项
+Bingo.meunIsChanged = false -- 判断是否从一级选项界面跳转到二级选项界面
+Bingo.seedForShow = "" -- 展示当局游戏的种子
+Bingo.FONT_OFFSET = 9 -- 文字大小的常量
 local MOD_FOLDER_NAME = "bingo_3555711630" -- 模组文件夹位置，用于导入字体文件
 local CUSTOM_FONT_FILE_PATH = "font/eid9/eid9_9px.fnt" -- 字体文件位置，用于导入字体文件
 
@@ -74,24 +74,29 @@ local CUSTOM_FONT_FILE_PATH = "font/eid9/eid9_9px.fnt" -- 字体文件位置，�
 -- 【任务变量】：任务渲染，完成任务的标识，选择任务的光标
 -- =======================================================
 
-Bingo.tasks = require("tasks")     -- 导入任务模块【tasks.lua】
-Bingo.POSITION_OF_TASKS=Isaac.WorldToRenderPosition(Vector(100, 420)) -- 任务缩略图渲染基座标【renderPositionOfTasks】的默认坐标
-Bingo.POSITION_OF_SCALED_TASKS=Isaac.WorldToRenderPosition(Vector(100, 200)) -- 任务放大图渲染基座标【renderPositionOfTasks】的默认坐标
-Bingo.renderPositionOfTasks = Bingo.POSITION_OF_TASKS -- 任务图渲染的基坐标，所有的任务渲染界面都围绕这个坐标
-Bingo.distanceBetweenMouseAndTaskBasePosition=Vector(0,0) -- 鼠标光标和任务图渲染基座标【renderPositionOfTasks】之间的X和Y的距离，用于移动任务图
-Bingo.finishIcon = Sprite()        -- 完成任务的标识图案
-Bingo.taskSelection = Sprite()     -- 选择任务的光标
-Bingo.tasksBackground = Sprite()   -- 任务图背景图
-Bingo.taskMargin = Sprite()        -- 任务图边框
-Bingo.taskSelectionPosition = { X = 0, Y = 0 } -- 选择任务的光标选择的对应的格坐标
-Bingo.taskSelectionEnable = false  -- 是否启用光标移动
-Bingo.achieveSound = SFXManager()  -- 完成任务的声音管理对象
-Bingo.TASKS_COUNT = 100            -- 当前任务库的任务总数
-Bingo.randomTasksQueue = {}        -- 目前没用
-Bingo.finishTasksNum = 0           -- 一局游戏完成任务的数量
-Bingo.longestLineLength = 0        -- 一局游戏完成任务的最大连线长度
-Bingo.map = {}                     -- 一局游戏存储任务变量的任务图
-Bingo.mapForCallBacks = {          -- 存储每个任务对应的函数，使其能在对应回调中被执行
+Bingo.tasks = require("tasks")                                                                                    -- 导入任务模块【tasks.lua】
+Bingo.POSITION_OF_TASKS = Isaac.WorldToRenderPosition(Vector(100, 420))                                           -- 任务缩略图渲染基座标【renderPositionOfTasks】的默认坐标
+Bingo.POSITION_OF_SCALED_TASKS = Isaac.WorldToRenderPosition(Vector(100, 200))                                    -- 任务放大图渲染基座标【renderPositionOfTasks】的默认坐标
+Bingo.renderPositionOfTasks = Bingo.POSITION_OF_TASKS                                                             -- 任务图渲染的基坐标，所有的任务渲染界面都围绕这个坐标
+Bingo.POSITION_OF_SCALED_TASKS_TEXT = Vector(Bingo.POSITION_OF_SCALED_TASKS.X + 130, Bingo.POSITION_OF_SCALED_TASKS.Y) -- 任务放大图文本描述基座标【renderPositionOfTexts】的默认坐标
+Bingo.POSITION_OF_TASKS_TEXT = Vector(Bingo.POSITION_OF_TASKS.X + 80, Bingo.POSITION_OF_TASKS.Y)                  -- 任务缩略图文本描述基座标【renderPositionOfTexts】的默认坐标
+Bingo.renderPositionOfTexts = Bingo.POSITION_OF_TASKS_TEXT                                                        -- 任务描述文本渲染的基座标，所有的任务文本描述渲染都围绕这个坐标
+Bingo.distanceBetweenMouseAndTaskBasePosition = Vector(0, 0)                                                      -- 鼠标光标和任务图渲染基座标【renderPositionOfTasks】之间的X和Y的距离，用于移动任务图
+Bingo.distanceBetweenMouseAndTextBasePosition = Vector(0, 0)                                                      -- 鼠标光标和任务文本描述渲染基座标【renderPositionOfTexts】之间的X和Y的距离，用于移动文本
+Bingo.taskDescriptionLength = 0                                                                                   -- 光标选定任务文本描述的长度，用于在setPosition函数中移动该文本
+Bingo.finishIcon = Sprite()                                                                                       -- 完成任务的标识图案
+Bingo.taskSelection = Sprite()                                                                                    -- 选择任务的光标
+Bingo.tasksBackground = Sprite()                                                                                  -- 任务图背景图
+Bingo.taskMargin = Sprite()                                                                                       -- 任务图边框
+Bingo.taskSelectionPosition = { X = 0, Y = 0 }                                                                    -- 选择任务的光标选择的对应的格坐标
+Bingo.taskSelectionEnable = false                                                                                 -- 是否启用光标移动
+Bingo.achieveSound = SFXManager()                                                                                 -- 完成任务的声音管理对象
+Bingo.TASKS_COUNT = 100                                                                                           -- 当前任务库的任务总数
+Bingo.randomTasksQueue = {}                                                                                       -- 目前没用
+Bingo.finishTasksNum = 0                                                                                          -- 一局游戏完成任务的数量
+Bingo.longestLineLength = 0                                                                                       -- 一局游戏完成任务的最大连线长度
+Bingo.map = {}                                                                                                    -- 一局游戏存储任务变量的任务图
+Bingo.mapForCallBacks = {                                                                                         -- 存储每个任务对应的函数，使其能在对应回调中被执行
     [ModCallbacks.MC_POST_UPDATE] = {},
     [ModCallbacks.MC_POST_RENDER] = {},
     [ModCallbacks.MC_POST_NEW_LEVEL] = {},
@@ -107,7 +112,7 @@ Bingo.mapForCallBacks = {          -- 存储每个任务对应的函数，使其
 -- 【RestartKey】：指定的终点Boss，RestartKey
 -- =======================================================
 
-Bingo.finalBosses = {              -- 终点Boss表
+Bingo.finalBosses = { -- 终点Boss表
     { type = EntityType.ENTITY_ISAAC,        variant = 0 },
     { type = EntityType.ENTITY_ISAAC,        variant = 1 },
     { type = EntityType.ENTITY_THE_LAMB,     variant = 0 },
@@ -118,7 +123,7 @@ Bingo.finalBosses = {              -- 终点Boss表
     { type = EntityType.ENTITY_DELIRIUM,     variant = 0 }
 }
 Bingo.finalBossPtr = { type = nil, variant = nil, ref = nil } -- 存储当前房间最终boss的指针
-Bingo.restartKey = Isaac.GetItemIdByName("Restart Key") -- Restart Key道具注册 
+Bingo.restartKey = Isaac.GetItemIdByName("Restart Key")       -- Restart Key道具注册
 
 -- =======================================================
 -- 【键盘输入】：键盘输入
@@ -130,11 +135,11 @@ Bingo.keyboard = require("keyboard") -- 导入键盘输入模块【keyboard.lua�
 -- 【WebSocket】：ws全连接变量
 -- =======================================================
 
-local dkjson = require("dkjson")     -- 导入json处理模块【dkjson.lua】
-local roomIdParts = {};              -- 房间id分块存储，包含房间号和席位号
-local partsSeed = {};                -- 游戏种子分块存储
-Bingo.ws = nil                       -- WebSocket全连接管理变量
-local wsConnectStatus = false        -- 判断WebSocket全连接是否维持
+local dkjson = require("dkjson") -- 导入json处理模块【dkjson.lua】
+local roomIdParts = {};          -- 房间id分块存储，包含房间号和席位号
+local partsSeed = {};            -- 游戏种子分块存储
+Bingo.ws = nil                   -- WebSocket全连接管理变量
+local wsConnectStatus = false    -- 判断WebSocket全连接是否维持
 
 -- =======================================================
 -- 【测试使用】：启用任务测试，是否启用测试
@@ -146,7 +151,6 @@ Bingo.test = nil
 
 
 
-Bingo.startSignal = 0
 
 -- =======================================================
 -- 【业务函数】：Bingo游戏逻辑实现
@@ -228,12 +232,12 @@ local function CallbackOnMessage(message, isBinary)
         if err then
             print(err, pos)
         else
-            if gameStartTable~=nil and gameStartTable.type == "start_game" then
-                Bingo.gameIsPaused=true
+            if gameStartTable ~= nil and gameStartTable.type == "start_game" then
+                Bingo.gameIsPaused = true
                 Bingo.readMapTimeIsStarted = true
                 Bingo.timerForReadMapStart = Isaac.GetTime()
                 print("maptime: ", Bingo.readMapTime)
-            elseif gameStartTable~=nil and gameStartTable.type == "task_confirmed" then
+            elseif gameStartTable ~= nil and gameStartTable.type == "task_confirmed" then
                 Bingo.map[gameStartTable.data.row + 1][gameStartTable.data.col + 1].task.isAchieved = true
                 Bingo.map[gameStartTable.data.row + 1][gameStartTable.data.col + 1].task.achieveBy = gameStartTable.data
                     .achieveBy
@@ -434,10 +438,10 @@ function Bingo:gameStartMenu()
                 if Input.IsActionTriggered(ButtonAction.ACTION_MAP, Bingo.player.ControllerIndex) then
                     if Bingo.enableCooperatedMode then
                         Bingo.enableCooperatedMode = false
-                        Bingo.LIMITED_TIME=45
+                        Bingo.LIMITED_TIME = 45
                     else
                         Bingo.enableCooperatedMode = true
-                        Bingo.LIMITED_TIME=35
+                        Bingo.LIMITED_TIME = 35
                     end
                 end
                 if Bingo.enableCooperatedMode then
@@ -500,12 +504,13 @@ function Bingo:showGameInfo()
     Bingo.startMenu:DrawStringUTF8("已完成任务数: " .. Bingo.finishTasksNum, 10, 212, KColor(1, 1, 1, 1))
     Bingo.startMenu:DrawStringUTF8("最长连线: " .. Bingo.longestLineLength, 10, 224, KColor(1, 1, 1, 1))
     Bingo.startMenu:DrawStringUTF8("种子: " .. Bingo.seedForShow, 10, 236, KColor(1, 1, 1, 1))
-    Bingo.startMenu:DrawStringUTF8("总时间: "..Bingo.LIMITED_TIME,10,272,KColor(1,1,1,1))
+    Bingo.startMenu:DrawStringUTF8("总时间: " .. Bingo.LIMITED_TIME, 10, 272, KColor(1, 1, 1, 1))
     if Bingo.gameIsPaused then
         Bingo.startMenu:DrawStringUTF8("游戏已暂停，长按地图键+丢弃卡牌键继续", 10, 248, KColor(1, 0, 0, 0.8))
     end
     if Bingo.readMapTimeIsStarted and (not Bingo.gameIsStarted) then
-        Bingo.startMenu:DrawStringUTF8("读图时间: "..Bingo.readMapTimeForShow.minute..":"..Bingo.readMapTimeForShow.second,80,212,KColor(1,0,0,1))
+        Bingo.startMenu:DrawStringUTF8("读图时间: " .. Bingo.readMapTimeForShow.minute ..
+        ":" .. Bingo.readMapTimeForShow.second, 80, 212, KColor(1, 0, 0, 1))
     end
     if Bingo.ws == nil or Bingo.ws.IsClosed() then
         Bingo.startMenu:DrawStringUTF8("连接失败", 10, 260, KColor(255, 0, 0, 1))
@@ -596,7 +601,8 @@ function Bingo:tasksIconRender()
                         end
                         Bingo.finishIcon:SetFrame("Finish" .. achieveBy, 0)
                         Bingo.finishIcon.Scale = Vector(2.2, 2.2)
-                        Bingo.finishIcon:Render(Vector(Bingo.renderPositionOfTasks.X + 26 * valueCol.task.renderXOffset - 7,
+                        Bingo.finishIcon:Render(Vector(
+                            Bingo.renderPositionOfTasks.X + 26 * valueCol.task.renderXOffset - 7,
                             Bingo.renderPositionOfTasks.Y + 26 * valueCol.task.renderYOffset - 7))
                     end
                 end
@@ -636,6 +642,8 @@ function Bingo:tasksIconRender()
             end
         end
         local taskSelected = Bingo.map[Bingo.taskSelectionPosition.Y + 1][Bingo.taskSelectionPosition.X + 1]
+        -- 打印任务描述的字
+        Bingo.taskDescriptionLength = string.len(taskSelected.task.description)
         if Bingo.taskSelectionEnable then
             if taskSelected.detailedTaskPart.achieveCount ~= nil and taskSelected.detailedTaskPart.TARGET_NUM ~= nil then
                 local achievedCountDisplay = taskSelected.detailedTaskPart.achieveCount
@@ -645,10 +653,10 @@ function Bingo:tasksIconRender()
                 Bingo.startMenu:DrawStringScaledUTF8(
                     taskSelected.task.description ..
                     " " .. achievedCountDisplay .. "/" .. taskSelected.detailedTaskPart.TARGET_NUM,
-                    Bingo.renderPositionOfTasks.X + 130, Bingo.renderPositionOfTasks.Y, 1.6, 1.6, KColor(1, 1, 1, 1))
+                    Bingo.renderPositionOfTexts.X, Bingo.renderPositionOfTexts.Y, 1.6, 1.6, KColor(1, 1, 1, 1))
             else
-                Bingo.startMenu:DrawStringScaledUTF8(taskSelected.task.description, Bingo.renderPositionOfTasks.X + 130,
-                    Bingo.renderPositionOfTasks.Y, 1.6, 1.6, KColor(1, 1, 1, 1))
+                Bingo.startMenu:DrawStringScaledUTF8(taskSelected.task.description, Bingo.renderPositionOfTexts.X,
+                    Bingo.renderPositionOfTexts.Y, 1.6, 1.6, KColor(1, 1, 1, 1))
             end
         else
             if taskSelected.detailedTaskPart.achieveCount ~= nil and taskSelected.detailedTaskPart.TARGET_NUM ~= nil then
@@ -659,34 +667,69 @@ function Bingo:tasksIconRender()
                 Bingo.startMenu:DrawStringUTF8(
                     taskSelected.task.description ..
                     " " .. achievedCountDisplay .. "/" .. taskSelected.detailedTaskPart.TARGET_NUM,
-                    Bingo.renderPositionOfTasks.X + 80, Bingo.renderPositionOfTasks.Y, KColor(1, 1, 1, 1))
+                    Bingo.renderPositionOfTexts.X, Bingo.renderPositionOfTexts.Y, KColor(1, 1, 1, 1))
             else
-                Bingo.startMenu:DrawStringUTF8(taskSelected.task.description, Bingo.renderPositionOfTasks.X + 80,
-                    Bingo.renderPositionOfTasks.Y, KColor(1, 1, 1, 1))
+                Bingo.startMenu:DrawStringUTF8(taskSelected.task.description, Bingo.renderPositionOfTexts.X,
+                    Bingo.renderPositionOfTexts.Y, KColor(1, 1, 1, 1))
             end
         end
     end
 end
 
--- 功能：维护【renderPosition】和【renderPositionOfTasks】，保证缩放窗口时坐标与新窗口对应坐标一致
+-- 功能：维护【renderPosition】、【renderPositionOfTasks】和【renderPositionOfTexts】，保证缩放窗口时坐标与新窗口对应坐标一致
 function Bingo:setPosition()
     if Bingo.taskSelectionEnable then
+        -- 获取鼠标在屏幕上的渲染坐标
+        local mousePosition = Input.GetMousePosition(true)
+        mousePosition = Isaac.WorldToRenderPosition(mousePosition)
+        -- 没有点击右键时持续捕获鼠标与图基座标、文本基座标之间的X和Y距离
+        if not Input.IsMouseBtnPressed(1) then
+            Bingo.distanceBetweenMouseAndTaskBasePosition = Vector(mousePosition.X - Bingo.renderPositionOfTasks.X,
+                mousePosition.Y - Bingo.renderPositionOfTasks.Y)
+            Bingo.distanceBetweenMouseAndTextBasePosition = Vector(mousePosition.X - Bingo.renderPositionOfTexts.X,
+                mousePosition.Y - Bingo.renderPositionOfTexts.Y)
+        end
+        -- 如果鼠标正在右键且鼠标点击到了bingo大图的区域，则可以移动大图
+        if Input.IsMouseBtnPressed(1) and mousePosition.X >= Bingo.POSITION_OF_SCALED_TASKS.X - 4 and mousePosition.X <= Bingo.POSITION_OF_SCALED_TASKS.X + 124 and
+            mousePosition.Y >= Bingo.POSITION_OF_SCALED_TASKS.Y - 4 and mousePosition.Y <= Bingo.POSITION_OF_SCALED_TASKS.Y + 124 then
+            Bingo.POSITION_OF_SCALED_TASKS.X = mousePosition.X - Bingo.distanceBetweenMouseAndTaskBasePosition.X
+            Bingo.POSITION_OF_SCALED_TASKS.Y = mousePosition.Y - Bingo.distanceBetweenMouseAndTaskBasePosition.Y
+        end
+        -- 如果鼠标正在右键且鼠标点击到了bingo大图任务文字描述的区域，则可以移动文字
+        if Input.IsMouseBtnPressed(1) and mousePosition.X >= Bingo.POSITION_OF_SCALED_TASKS_TEXT.X and
+            mousePosition.X <= Bingo.POSITION_OF_SCALED_TASKS_TEXT.X + 9 * 1.6 * Bingo.taskDescriptionLength and
+            mousePosition.Y >= Bingo.POSITION_OF_SCALED_TASKS_TEXT.Y - 12*1.6 and mousePosition.Y <= Bingo.POSITION_OF_SCALED_TASKS_TEXT.Y + 18*1.6 then
+            Bingo.POSITION_OF_SCALED_TASKS_TEXT.X = mousePosition.X - Bingo.distanceBetweenMouseAndTextBasePosition.X
+            Bingo.POSITION_OF_SCALED_TASKS_TEXT.Y = mousePosition.Y - Bingo.distanceBetweenMouseAndTextBasePosition.Y
+        end
         Bingo.renderPositionOfTasks = Bingo.POSITION_OF_SCALED_TASKS
+        Bingo.renderPositionOfTexts = Bingo.POSITION_OF_SCALED_TASKS_TEXT
     else
         -- 获取鼠标在屏幕上的渲染坐标
-        local mousePosition=Input.GetMousePosition(true)
-        mousePosition=Isaac.WorldToRenderPosition(mousePosition)
-        --print(mousePosition.X,"  ",mousePosition.Y)
+        local mousePosition = Input.GetMousePosition(true)
+        mousePosition = Isaac.WorldToRenderPosition(mousePosition)
+        -- 没有点击右键时持续捕获鼠标与图基座标之间的X和Y距离
         if not Input.IsMouseBtnPressed(1) then
-            Bingo.distanceBetweenMouseAndTaskBasePosition=Vector(mousePosition.X-Bingo.renderPositionOfTasks.X,mousePosition.Y-Bingo.renderPositionOfTasks.Y)
+            Bingo.distanceBetweenMouseAndTaskBasePosition = Vector(mousePosition.X - Bingo.renderPositionOfTasks.X,
+                mousePosition.Y - Bingo.renderPositionOfTasks.Y)
+            Bingo.distanceBetweenMouseAndTextBasePosition = Vector(mousePosition.X - Bingo.renderPositionOfTexts.X,
+                mousePosition.Y - Bingo.renderPositionOfTexts.Y)
         end
         -- 如果鼠标正在右键且鼠标点击到了bingo缩略图的区域，则可以移动缩略图
-        if Input.IsMouseBtnPressed(Mouse.MOUSE_BUTTON_2) and mousePosition.X>=Bingo.POSITION_OF_TASKS.X-3 and mousePosition.X<=Bingo.POSITION_OF_TASKS.X+56 and
-        mousePosition.Y>=Bingo.POSITION_OF_TASKS.Y-3 and mousePosition.Y<=Bingo.POSITION_OF_TASKS.Y+56 then
-            Bingo.POSITION_OF_TASKS.X=mousePosition.X-Bingo.distanceBetweenMouseAndTaskBasePosition.X
-            Bingo.POSITION_OF_TASKS.Y=mousePosition.Y-Bingo.distanceBetweenMouseAndTaskBasePosition.Y
+        if Input.IsMouseBtnPressed(Mouse.MOUSE_BUTTON_2) and mousePosition.X >= Bingo.POSITION_OF_TASKS.X - 3 and mousePosition.X <= Bingo.POSITION_OF_TASKS.X + 56 and
+            mousePosition.Y >= Bingo.POSITION_OF_TASKS.Y - 3 and mousePosition.Y <= Bingo.POSITION_OF_TASKS.Y + 56 then
+            Bingo.POSITION_OF_TASKS.X = mousePosition.X - Bingo.distanceBetweenMouseAndTaskBasePosition.X
+            Bingo.POSITION_OF_TASKS.Y = mousePosition.Y - Bingo.distanceBetweenMouseAndTaskBasePosition.Y
+        end
+        -- 如果鼠标正在右键且鼠标点击到了bingo缩略图任务文字描述的区域，则可以移动文字
+        if Input.IsMouseBtnPressed(1) and mousePosition.X >= Bingo.POSITION_OF_TASKS_TEXT.X and
+            mousePosition.X <= Bingo.POSITION_OF_TASKS_TEXT.X + 9 * 1 * Bingo.taskDescriptionLength and
+            mousePosition.Y >= Bingo.POSITION_OF_TASKS_TEXT.Y - 12  and mousePosition.Y <= Bingo.POSITION_OF_TASKS_TEXT.Y + 18 then
+            Bingo.POSITION_OF_TASKS_TEXT.X = mousePosition.X - Bingo.distanceBetweenMouseAndTextBasePosition.X
+            Bingo.POSITION_OF_TASKS_TEXT.Y = mousePosition.Y - Bingo.distanceBetweenMouseAndTextBasePosition.Y
         end
         Bingo.renderPositionOfTasks = Bingo.POSITION_OF_TASKS
+        Bingo.renderPositionOfTexts=Bingo.POSITION_OF_TASKS_TEXT
     end
 end
 
@@ -708,7 +751,7 @@ function Bingo:gameInitialize(isContinued)
         Bingo.newStart = false
         Bingo.playerIndex = 0
         Bingo.gameMode = 0
-        Bingo.LIMITED_TIME=45
+        Bingo.LIMITED_TIME = 45
         Bingo.lives = 2
         Bingo.timerNew = 0
         Bingo.timerStart = 0
@@ -788,7 +831,7 @@ function Bingo:playerDeath(IsGameOver)
         Bingo.continuedTime = Bingo.gameTime;
         -- 在多人组队模式下死亡有罚时剩余时间的30%
         if Bingo.enableCooperatedMode then
-            Bingo.LIMITED_TIME=Bingo.LIMITED_TIME-math.floor((Bingo.LIMITED_TIME-Bingo.gameTime/60000)*0.30)
+            Bingo.LIMITED_TIME = Bingo.LIMITED_TIME - math.floor((Bingo.LIMITED_TIME - Bingo.gameTime / 60000) * 0.30)
         end
     end
     if Bingo.lives <= 0 and IsGameOver then
@@ -1078,7 +1121,7 @@ function Bingo:createBingoMap()
             --for debug
             local debugtime = 0
             taskIndex = math.random(1, Bingo.TASKS_COUNT)
-            print("map num: ",taskIndex)
+            print("map num: ", taskIndex)
             while (not isTaskNoProblem(row, col, taskIndex, mode)) do
                 taskIndex = math.random(1, Bingo.TASKS_COUNT)
                 searchTime = searchTime + 1
@@ -1197,8 +1240,9 @@ function Bingo:killFinalBosses()
                 Isaac.GetFreeNearPosition(Bingo.player.Position, 3), Vector(0, 0), Bingo.player)
             Isaac.Spawn(5, 340, 0, Vector(0, 0), Vector(0, 0), nil)
         end
-        local restartKey=Bingo.game:Spawn(EntityType.ENTITY_PICKUP,100,Isaac.GetFreeNearPosition(Bingo.player.Position, 3),Vector(0,0),nil,Bingo.restartKey,100)
-        restartKey:ToPickup():Morph(EntityType.ENTITY_PICKUP,100,Bingo.restartKey,false,true,true)
+        local restartKey = Bingo.game:Spawn(EntityType.ENTITY_PICKUP, 100,
+            Isaac.GetFreeNearPosition(Bingo.player.Position, 3), Vector(0, 0), nil, Bingo.restartKey, 100)
+        restartKey:ToPickup():Morph(EntityType.ENTITY_PICKUP, 100, Bingo.restartKey, false, true, true)
         Bingo.finalBossPtr.ref.Ref:Remove()
         Bingo.finalBossPtr.type = nil
         Bingo.finalBossPtr.variant = nil
