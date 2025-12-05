@@ -128,7 +128,7 @@ local taskDescriptionList = {
     [27] = "摧毁x石头或超级x石头1次",
     [28] = "击败羔羊",
     [29] = "获得飞行能力",
-    [30] = "攻击力≥15",
+    [30] = "攻击力>=15",
     [31] = "击败见证者",
     [32] = "完成一次矿层追逐战（神庙逃亡）",
     [33] = "天使套",
@@ -149,7 +149,7 @@ local taskDescriptionList = {
     [48] = "恶魔套",
     [49] = "前两层所有普通房间全探索",
     [50] = "拥有1个骰子主题的道具、饰品或掉落物",
-    [51] = "弹速≥1.8",
+    [51] = "弹速>=1.8",
     [52] = "完成回溯线",
     [53] = "拥有至少6个心之容器",
     [54] = "喂饱1个除黑乞丐和白乞丐以外的乞丐",
@@ -193,8 +193,8 @@ local taskDescriptionList = {
     [92] = "累计杀死200只怪物",
     [93] = "击败2个天启boss",
     [94] = "累计使用主动15次",
-    [95] = "拾取1个红箱子开出来的道具",
-    [96] = "拾取2个箱子开出来的道具",
+    [95] = "红箱子开出1个道具",
+    [96] = "箱子开出2个道具",
     [97] = "炸1个梳妆台",
     [98] = "只用无视护甲的炸弹伤害斩杀1个Boss",
     [99] = "累计消耗15把钥匙",
@@ -290,6 +290,7 @@ local function updateBingoMapConfigAndRemoveCallBack(task)
             achieveSound:Play(579, 20)
             achieveSound:Play(128, 1)
             Bingo:getMapConfig(task.task.renderXOffset, task.task.renderYOffset)
+            Game():GetHUD():ShowItemText("任务完成！", task.task.description)
             Bingo.finishTasksNum = Bingo.finishTasksNum + 1
             print("finish_task: ",task.task.taskIndex,",finish_time: ",Bingo.gameTime)
             task.task.signal1 = 1
@@ -2490,7 +2491,7 @@ local function task72Method(task)
     local stage = Bingo.game:GetLevel():GetStage()
     local room = Bingo.game:GetLevel():GetCurrentRoomDesc()
     if stage == LevelStage.STAGE7 and room.Data.Type == RoomType.ROOM_BOSS and
-        Isaac.CountEntities(nil, EntityType.ENTITY_DELIRIUM, 0, 0) then
+        Isaac.CountEntities(nil, EntityType.ENTITY_DELIRIUM, 0, 0)>0 then
         task.detailedTaskPart.deliriumRoom = room.ListIndex
     end
     if Bingo.game:GetLevel():GetCurrentRoomDesc().ListIndex == task.detailedTaskPart.deliriumRoom and

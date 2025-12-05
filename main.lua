@@ -1,6 +1,6 @@
 StartDebug()
 Bingo = RegisterMod("Bingo", 1)
-Bingo.version = "5.9"
+Bingo.version = "5.11"
 
 -- =======================================================
 -- 【全局游戏】：一些全局量
@@ -11,6 +11,7 @@ Bingo.game = Game()
 Bingo.level = Bingo.game:GetLevel()
 Bingo.userId = ""                  -- 用于多人模式在本地构建一个足够随机的id来表征身份
 Bingo.roomId = ""                  -- 用于存储多人模式当前游玩的房间号
+Bingo.saveData=""                  -- 存档信息
 
 -- =======================================================
 --【计时变量】：计时器，游戏时间限时，用于展示的时间，用于启动特殊计时模式
@@ -74,7 +75,10 @@ local CUSTOM_FONT_FILE_PATH = "font/eid9/eid9_9px.fnt" -- 字体文件位置，�
 -- =======================================================
 
 Bingo.tasks = require("tasks")     -- 导入任务模块【tasks.lua】
-Bingo.renderPositionOfTasks = Isaac.WorldToRenderPosition(Vector(100, 420)) -- 任务图渲染的基坐标，所有的任务渲染界面都围绕这个坐标
+Bingo.POSITION_OF_TASKS=Isaac.WorldToRenderPosition(Vector(100, 420)) -- 任务缩略图渲染基座标【renderPositionOfTasks】的默认坐标
+Bingo.POSITION_OF_SCALED_TASKS=Isaac.WorldToRenderPosition(Vector(100, 200)) -- 任务放大图渲染基座标【renderPositionOfTasks】的默认坐标
+Bingo.renderPositionOfTasks = Bingo.POSITION_OF_TASKS -- 任务图渲染的基坐标，所有的任务渲染界面都围绕这个坐标
+Bingo.distanceBetweenMouseAndTaskBasePosition=Vector(0,0) -- 鼠标光标和任务图渲染基座标【renderPositionOfTasks】之间的X和Y的距离，用于移动任务图
 Bingo.finishIcon = Sprite()        -- 完成任务的标识图案
 Bingo.taskSelection = Sprite()     -- 选择任务的光标
 Bingo.tasksBackground = Sprite()   -- 任务图背景图
@@ -236,6 +240,8 @@ local function CallbackOnMessage(message, isBinary)
                 if gameStartTable.data.achieveBy == Bingo.playerIndex then
                     Bingo.tasks.achieveSound:Play(579, 20)
                     Bingo.tasks.achieveSound:Play(128, 1)
+                    Game():GetHUD():ShowItemText("任务完成！",
+                        Bingo.map[gameStartTable.data.row + 1][gameStartTable.data.col + 1].task.description)
                     local taskX = gameStartTable.data.col
                     local taskY = gameStartTable.data.row
                     print(taskX, " ", taskY)
@@ -243,6 +249,21 @@ local function CallbackOnMessage(message, isBinary)
                     Bingo.finishTasksNum = Bingo.finishTasksNum + 1
                 else
                     Bingo.tasks.achieveSound:Play(579, 20)
+                    local groupIndex = Bingo.playerIndex
+                    if Bingo.enableCooperatedMode then
+                        if groupIndex == 2 then
+                            groupIndex = 1
+                        elseif groupIndex == 4 then
+                            groupIndex = 3
+                        end
+                    end
+                    if gameStartTable.data.achieveBy == groupIndex then
+                        Game():GetHUD():ShowItemText("任务完成！（队友）",
+                            Bingo.map[gameStartTable.data.row + 1][gameStartTable.data.col + 1].task.description)
+                    else
+                        Game():GetHUD():ShowItemText("对手完成了任务",
+                            Bingo.map[gameStartTable.data.row + 1][gameStartTable.data.col + 1].task.description)
+                    end
                 end
             end
         end
@@ -533,6 +554,7 @@ function Bingo:tasksIconRender()
                         break
                     end
                     valueCol.task.taskIcon:SetFrame("task", 0)
+                    valueCol.task.taskIcon.Scale = Vector(1, 1)
                     valueCol.task.taskIcon:Render(Vector(Bingo.renderPositionOfTasks.X + 10 * valueCol.task
                         .renderXOffset + 1, Bingo.renderPositionOfTasks.Y + 10 * valueCol.task.renderYOffset + 1))
                     if valueCol.task.isAchieved and valueCol.task.achieveBy ~= -1 then
@@ -545,6 +567,7 @@ function Bingo:tasksIconRender()
                             end
                         end
                         Bingo.finishIcon:SetFrame("Finish" .. achieveBy, 0)
+                        Bingo.finishIcon.Scale = Vector(1, 1)
                         Bingo.finishIcon:Render(Vector(Bingo.renderPositionOfTasks.X + 10 * valueCol.task.renderXOffset,
                             Bingo.renderPositionOfTasks.Y + 10 * valueCol.task.renderYOffset))
                     end
@@ -554,8 +577,9 @@ function Bingo:tasksIconRender()
             for indexRow, valueRow in ipairs(Bingo.map) do
                 for indexCol, valueCol in ipairs(valueRow) do
                     valueCol.task.taskIcon:SetFrame("task", 0)
+                    valueCol.task.taskIcon.Scale = Vector(2, 2);
                     valueCol.task.taskIcon:Render(Vector(Bingo.renderPositionOfTasks.X + 26 * valueCol.task
-                        .renderXOffset + 1, Bingo.renderPositionOfTasks.Y + 26 * valueCol.task.renderYOffset + 1))
+                        .renderXOffset + 1 - 5, Bingo.renderPositionOfTasks.Y + 26 * valueCol.task.renderYOffset + 1 - 5))
                     Bingo.taskMargin:SetFrame("margin", 0);
                     Bingo.taskMargin:Render(Vector(
                         Bingo.renderPositionOfTasks.X + 26 * valueCol.task.renderXOffset + 1 -
@@ -570,19 +594,22 @@ function Bingo:tasksIconRender()
                             end
                         end
                         Bingo.finishIcon:SetFrame("Finish" .. achieveBy, 0)
-                        Bingo.finishIcon:Render(Vector(Bingo.renderPositionOfTasks.X + 26 * valueCol.task.renderXOffset,
-                            Bingo.renderPositionOfTasks.Y + 26 * valueCol.task.renderYOffset))
+                        Bingo.finishIcon.Scale = Vector(2.2, 2.2)
+                        Bingo.finishIcon:Render(Vector(Bingo.renderPositionOfTasks.X + 26 * valueCol.task.renderXOffset - 7,
+                            Bingo.renderPositionOfTasks.Y + 26 * valueCol.task.renderYOffset - 7))
                     end
                 end
             end
         end
         if Bingo.taskSelectionEnable then
             Bingo.taskSelection:SetFrame("taskselect", 0)
-            Bingo.taskSelection:Render(Vector(Bingo.renderPositionOfTasks.X + Bingo.taskSelectionPosition.X * 26 + 1,
-                Bingo.renderPositionOfTasks.Y + Bingo.taskSelectionPosition.Y * 26 + 1))
+            Bingo.taskSelection.Scale = Vector(2.3, 2.3)
+            Bingo.taskSelection:Render(Vector(Bingo.renderPositionOfTasks.X + Bingo.taskSelectionPosition.X * 26 + 1 - 7,
+                Bingo.renderPositionOfTasks.Y + Bingo.taskSelectionPosition.Y * 26 + 1 - 7))
         else
             if not Bingo.taskSelectionEnable then
                 Bingo.taskSelection:SetFrame("taskselect1", 0)
+                Bingo.taskSelection.Scale = Vector(1, 1)
                 Bingo.taskSelection:Render(Vector(Bingo.renderPositionOfTasks.X + Bingo.taskSelectionPosition.X * 10 + 1,
                     Bingo.renderPositionOfTasks.Y + Bingo.taskSelectionPosition.Y * 10 + 1))
             end
@@ -606,15 +633,17 @@ function Bingo:tasksIconRender()
             if Bingo.taskSelectionPosition.Y >= 1 and Input.IsActionTriggered(ButtonAction.ACTION_SHOOTUP, Bingo.player.ControllerIndex) then
                 Bingo.taskSelectionPosition.Y = Bingo.taskSelectionPosition.Y - 1
             end
-        else
-            Bingo.renderPositionOfTasks = Isaac.WorldToRenderPosition(Vector(100, 420 + (99 - Options.MaxScale) / 2))
         end
         local taskSelected = Bingo.map[Bingo.taskSelectionPosition.Y + 1][Bingo.taskSelectionPosition.X + 1]
         if Bingo.taskSelectionEnable then
             if taskSelected.detailedTaskPart.achieveCount ~= nil and taskSelected.detailedTaskPart.TARGET_NUM ~= nil then
+                local achievedCountDisplay = taskSelected.detailedTaskPart.achieveCount
+                if math.type(achievedCountDisplay) == "float" then
+                    achievedCountDisplay = string.format("%.2f", achievedCountDisplay)
+                end
                 Bingo.startMenu:DrawStringScaledUTF8(
                     taskSelected.task.description ..
-                    " " .. taskSelected.detailedTaskPart.achieveCount .. "/" .. taskSelected.detailedTaskPart.TARGET_NUM,
+                    " " .. achievedCountDisplay .. "/" .. taskSelected.detailedTaskPart.TARGET_NUM,
                     Bingo.renderPositionOfTasks.X + 130, Bingo.renderPositionOfTasks.Y, 1.6, 1.6, KColor(1, 1, 1, 1))
             else
                 Bingo.startMenu:DrawStringScaledUTF8(taskSelected.task.description, Bingo.renderPositionOfTasks.X + 130,
@@ -622,9 +651,13 @@ function Bingo:tasksIconRender()
             end
         else
             if taskSelected.detailedTaskPart.achieveCount ~= nil and taskSelected.detailedTaskPart.TARGET_NUM ~= nil then
+                local achievedCountDisplay = taskSelected.detailedTaskPart.achieveCount
+                if math.type(achievedCountDisplay) == "float" then
+                    achievedCountDisplay = string.format("%.2f", achievedCountDisplay)
+                end
                 Bingo.startMenu:DrawStringUTF8(
                     taskSelected.task.description ..
-                    " " .. taskSelected.detailedTaskPart.achieveCount .. "/" .. taskSelected.detailedTaskPart.TARGET_NUM,
+                    " " .. achievedCountDisplay .. "/" .. taskSelected.detailedTaskPart.TARGET_NUM,
                     Bingo.renderPositionOfTasks.X + 80, Bingo.renderPositionOfTasks.Y, KColor(1, 1, 1, 1))
             else
                 Bingo.startMenu:DrawStringUTF8(taskSelected.task.description, Bingo.renderPositionOfTasks.X + 80,
@@ -636,11 +669,23 @@ end
 
 -- 功能：维护【renderPosition】和【renderPositionOfTasks】，保证缩放窗口时坐标与新窗口对应坐标一致
 function Bingo:setPosition()
-    Bingo.renderPosition = Isaac.WorldToRenderPosition(Vector(320, 150))
     if Bingo.taskSelectionEnable then
-        Bingo.renderPositionOfTasks = Isaac.WorldToRenderPosition(Vector(100, 200))
+        Bingo.renderPositionOfTasks = Bingo.POSITION_OF_SCALED_TASKS
     else
-        Bingo.renderPositionOfTasks = Isaac.WorldToRenderPosition(Vector(100, 420))
+        -- 获取鼠标在屏幕上的渲染坐标
+        local mousePosition=Input.GetMousePosition(true)
+        mousePosition=Isaac.WorldToRenderPosition(mousePosition)
+        --print(mousePosition.X,"  ",mousePosition.Y)
+        if not Input.IsMouseBtnPressed(1) then
+            Bingo.distanceBetweenMouseAndTaskBasePosition=Vector(mousePosition.X-Bingo.renderPositionOfTasks.X,mousePosition.Y-Bingo.renderPositionOfTasks.Y)
+        end
+        -- 如果鼠标正在右键且鼠标点击到了bingo缩略图的区域，则可以移动缩略图
+        if Input.IsMouseBtnPressed(Mouse.MOUSE_BUTTON_2) and mousePosition.X>=Bingo.POSITION_OF_TASKS.X-3 and mousePosition.X<=Bingo.POSITION_OF_TASKS.X+56 and
+        mousePosition.Y>=Bingo.POSITION_OF_TASKS.Y-3 and mousePosition.Y<=Bingo.POSITION_OF_TASKS.Y+56 then
+            Bingo.POSITION_OF_TASKS.X=mousePosition.X-Bingo.distanceBetweenMouseAndTaskBasePosition.X
+            Bingo.POSITION_OF_TASKS.Y=mousePosition.Y-Bingo.distanceBetweenMouseAndTaskBasePosition.Y
+        end
+        Bingo.renderPositionOfTasks = Bingo.POSITION_OF_TASKS
     end
 end
 
