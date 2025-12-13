@@ -2578,44 +2578,53 @@ end
 
 -- 任务85: 清空商店所有商品2次
 local function task85Method(task)
-    local roomList = Bingo.game:GetLevel():GetRooms()
-    -- 第一次遍历该层的所有房间，当房间为商店房且visitedCount==1时检查房间内是否有商品，
-    -- 有商品则标记，同时退出遍历该层所有房间的循环（该标记需要在新一层时还原）
-    if not task.detailedTaskPart.shopWithShopItem then
-        for i = 0, roomList.Size - 1, 1 do
-            local room = roomList:Get(i)
-            if room.Data.Type == RoomType.ROOM_SHOP and room.VisitedCount == 1 then
-                local entityList = Isaac.GetRoomEntities()
-                for _, value in ipairs(entityList) do
-                    local pickup = value:ToPickup()
-                    if pickup ~= nil and pickup:IsShopItem() then
-                        task.detailedTaskPart.shopWithShopItem = true
-                    end
-                end
-            end
-        end
+    local currentRoom = Bingo.game:GetLevel():GetCurrentRoom()
+    local currentRoomDesc = Bingo.game:GetLevel():GetCurrentRoomDesc()
+    local currentRoomIndex = currentRoomDesc.SafeGridIndex
+    if currentRoom:IsMirrorWorld() then
+        currentRoomIndex = -currentRoomIndex
     end
-    -- 当确认当层商店有商品时，当玩家在商店时遍历商店内所有entity，直到所有的entity都不是商品时，
-    -- 确认商店商品被清空，achieveCount+1
-    local currentRoom = Bingo.game:GetLevel():GetCurrentRoomDesc()
-    if task.detailedTaskPart.shopWithShopItem and currentRoom.Data.Type == RoomType.ROOM_SHOP and
-        task.detailedTaskPart.signal == 0 then
+    if currentRoomDesc.Data.Type ~= RoomType.ROOM_SHOP then
+        return
+    end
+    -- 进入商店，初始化一条商店记录，初始状态1
+    if task.detailedTaskPart.shopStatus[currentRoomIndex] == nil then
+        task.detailedTaskPart.shopStatus[currentRoomIndex] = 1
+    end
+    -- 如果商店有商品，更新状态为2
+    if task.detailedTaskPart.shopStatus[currentRoomIndex] == 1 then
         local entityList = Isaac.GetRoomEntities()
         for _, value in ipairs(entityList) do
             if value.Type == EntityType.ENTITY_PICKUP and
                 value:ToPickup():IsShopItem() then
-                return
+                task.detailedTaskPart.shopStatus[currentRoomIndex] = 2
+                break
             end
         end
-        task.detailedTaskPart.achieveCount = task.detailedTaskPart.achieveCount + 1
-        task.detailedTaskPart.signal = 1
     end
+    -- 如果商品清空，更新状态为3
+    if task.detailedTaskPart.shopStatus[currentRoomIndex] == 2 then
+        local entityList = Isaac.GetRoomEntities()
+        local hasShopItem = false
+        for _, value in ipairs(entityList) do
+            if value.Type == EntityType.ENTITY_PICKUP and
+                value:ToPickup():IsShopItem() then
+                hasShopItem = true
+                break
+            end
+        end
+        if not hasShopItem then
+            task.detailedTaskPart.shopStatus[currentRoomIndex] = 3
+            task.detailedTaskPart.achieveCount = task.detailedTaskPart.achieveCount + 1
+        end
+    end
+    -- 备注：这里限制了一个商店只能做一次任务，即使有 roll 机可以清空多次
     checkTaskIfAchived(task)
     updateBingoMapConfigAndRemoveCallBack(task)
 end
 
 local function resetMarkInNewStage(task)
-    task.detailedTaskPart.shopWithShopItem = false
+    task.detailedTaskPart.shopStatus = {}
     task.detailedTaskPart.signal = 0
 end
 
@@ -2632,6 +2641,7 @@ local function task85()
     }
     obj.detailedTaskPart.achieveCount = 0
     obj.detailedTaskPart.TARGET_NUM = 2
+    obj.detailedTaskPart.shopStatus = {}
     obj.signal = 0
     resetMarkInNewStage(obj)
     return obj
