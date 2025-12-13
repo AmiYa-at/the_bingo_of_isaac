@@ -1,6 +1,6 @@
 StartDebug()
 Bingo = RegisterMod("Bingo", 1)
-Bingo.version = "5.11"
+Bingo.version = "5.13"
 
 -- =======================================================
 -- 【全局游戏】：一些全局量
@@ -9,8 +9,8 @@ Bingo.version = "5.11"
 Bingo.player = Isaac.GetPlayer(0)
 Bingo.game = Game()
 Bingo.level = Bingo.game:GetLevel()
-Bingo.userId = "" -- 用于多人模式在本地构建一个足够随机的id来表征身份
-Bingo.roomId = "" -- 用于存储多人模式当前游玩的房间号
+Bingo.userId = ""   -- 用于多人模式在本地构建一个足够随机的id来表征身份
+Bingo.roomId = ""   -- 用于存储多人模式当前游玩的房间号
 Bingo.saveData = "" -- 存档信息
 
 -- =======================================================
@@ -74,29 +74,33 @@ local CUSTOM_FONT_FILE_PATH = "font/eid9/eid9_9px.fnt" -- 字体文件位置，�
 -- 【任务变量】：任务渲染，完成任务的标识，选择任务的光标
 -- =======================================================
 
-Bingo.tasks = require("tasks")                                                                                    -- 导入任务模块【tasks.lua】
-Bingo.POSITION_OF_TASKS = Isaac.WorldToRenderPosition(Vector(100, 420))                                           -- 任务缩略图渲染基座标【renderPositionOfTasks】的默认坐标
-Bingo.POSITION_OF_SCALED_TASKS = Isaac.WorldToRenderPosition(Vector(100, 200))                                    -- 任务放大图渲染基座标【renderPositionOfTasks】的默认坐标
-Bingo.renderPositionOfTasks = Bingo.POSITION_OF_TASKS                                                             -- 任务图渲染的基坐标，所有的任务渲染界面都围绕这个坐标
+Bingo.tasks = require("tasks")                                                                                         -- 导入任务模块【tasks.lua】
+Bingo.POSITION_OF_TASKS = Isaac.WorldToRenderPosition(Vector(100, 420))                                                -- 任务缩略图渲染基座标【renderPositionOfTasks】的默认坐标
+Bingo.POSITION_OF_SCALED_TASKS = Isaac.WorldToRenderPosition(Vector(100, 200))                                         -- 任务放大图渲染基座标【renderPositionOfTasks】的默认坐标
+Bingo.renderPositionOfTasks = Bingo
+    .POSITION_OF_TASKS                                                                                                 -- 任务图渲染的基坐标，所有的任务渲染界面都围绕这个坐标
 Bingo.POSITION_OF_SCALED_TASKS_TEXT = Vector(Bingo.POSITION_OF_SCALED_TASKS.X + 130, Bingo.POSITION_OF_SCALED_TASKS.Y) -- 任务放大图文本描述基座标【renderPositionOfTexts】的默认坐标
-Bingo.POSITION_OF_TASKS_TEXT = Vector(Bingo.POSITION_OF_TASKS.X + 80, Bingo.POSITION_OF_TASKS.Y)                  -- 任务缩略图文本描述基座标【renderPositionOfTexts】的默认坐标
-Bingo.renderPositionOfTexts = Bingo.POSITION_OF_TASKS_TEXT                                                        -- 任务描述文本渲染的基座标，所有的任务文本描述渲染都围绕这个坐标
-Bingo.distanceBetweenMouseAndTaskBasePosition = Vector(0, 0)                                                      -- 鼠标光标和任务图渲染基座标【renderPositionOfTasks】之间的X和Y的距离，用于移动任务图
-Bingo.distanceBetweenMouseAndTextBasePosition = Vector(0, 0)                                                      -- 鼠标光标和任务文本描述渲染基座标【renderPositionOfTexts】之间的X和Y的距离，用于移动文本
-Bingo.taskDescriptionLength = 0                                                                                   -- 光标选定任务文本描述的长度，用于在setPosition函数中移动该文本
-Bingo.finishIcon = Sprite()                                                                                       -- 完成任务的标识图案
-Bingo.taskSelection = Sprite()                                                                                    -- 选择任务的光标
-Bingo.tasksBackground = Sprite()                                                                                  -- 任务图背景图
-Bingo.taskMargin = Sprite()                                                                                       -- 任务图边框
-Bingo.taskSelectionPosition = { X = 0, Y = 0 }                                                                    -- 选择任务的光标选择的对应的格坐标
-Bingo.taskSelectionEnable = false                                                                                 -- 是否启用光标移动
-Bingo.achieveSound = SFXManager()                                                                                 -- 完成任务的声音管理对象
-Bingo.TASKS_COUNT = 100                                                                                           -- 当前任务库的任务总数
-Bingo.randomTasksQueue = {}                                                                                       -- 目前没用
-Bingo.finishTasksNum = 0                                                                                          -- 一局游戏完成任务的数量
-Bingo.longestLineLength = 0                                                                                       -- 一局游戏完成任务的最大连线长度
-Bingo.map = {}                                                                                                    -- 一局游戏存储任务变量的任务图
-Bingo.mapForCallBacks = {                                                                                         -- 存储每个任务对应的函数，使其能在对应回调中被执行
+Bingo.POSITION_OF_TASKS_TEXT = Vector(Bingo.POSITION_OF_TASKS.X + 80, Bingo.POSITION_OF_TASKS.Y)                       -- 任务缩略图文本描述基座标【renderPositionOfTexts】的默认坐标
+Bingo.renderPositionOfTexts = Bingo
+    .POSITION_OF_TASKS_TEXT                                                                                            -- 任务描述文本渲染的基座标，所有的任务文本描述渲染都围绕这个坐标
+Bingo.distanceBetweenMouseAndTaskBasePosition = Vector(0, 0)                                                           -- 鼠标光标和任务图渲染基座标【renderPositionOfTasks】之间的X和Y的距离，用于移动任务图
+Bingo.distanceBetweenMouseAndTextBasePosition = Vector(0, 0)                                                           -- 鼠标光标和任务文本描述渲染基座标【renderPositionOfTexts】之间的X和Y的距离，用于移动文本
+Bingo.isPressedTasksTable = false                                                                                      -- 是否正在点击bingo图
+Bingo.isPressedTaskDescription = false                                                                                 -- 是否正在点击任务文字描述
+Bingo.taskDescriptionLength = 0                                                                                        -- 光标选定任务文本描述的长度，用于在setPosition函数中移动该文本
+Bingo.finishIcon = Sprite()                                                                                            -- 完成任务的标识图案
+Bingo.taskSelection = Sprite()                                                                                         -- 选择任务的光标
+Bingo.tasksBackground = Sprite()                                                                                       -- 任务图背景图
+Bingo.taskMargin = Sprite()                                                                                            -- 任务图边框
+Bingo.taskSelectionPosition = { X = 0, Y = 0 }                                                                         -- 选择任务的光标选择的对应的格坐标
+Bingo.taskSelectionEnable = false                                                                                      -- 是否启用光标移动
+Bingo.achieveSound = SFXManager()                                                                                      -- 完成任务的声音管理对象
+Bingo.TASKS_COUNT = 100                                                                                                -- 当前任务库的任务总数
+Bingo.randomTasksQueue = {}                                                                                            -- 目前没用
+Bingo.finishTasksNum = 0                                                                                               -- 一局游戏完成任务的数量
+Bingo.longestLineLength = 0                                                                                            -- 一局游戏完成任务的最大连线长度
+Bingo.map = {}                                                                                                         -- 一局游戏存储任务变量的任务图
+Bingo.mapForCallBacks = {                                                                                              -- 存储每个任务对应的函数，使其能在对应回调中被执行
     [ModCallbacks.MC_POST_UPDATE] = {},
     [ModCallbacks.MC_POST_RENDER] = {},
     [ModCallbacks.MC_POST_NEW_LEVEL] = {},
@@ -384,6 +388,7 @@ function Bingo:gameStartMenu()
                 --choose "随便开把" mode--
                 if Input.IsActionTriggered(ButtonAction.ACTION_ITEM, Bingo.player.ControllerIndex) and Bingo.startMenuSelectOfSingle == 1 then
                     math.randomseed(Random())
+                    Bingo:deleteBingoMap()
                     Bingo:createBingoMap()
 
                     -- 测试用
@@ -406,6 +411,7 @@ function Bingo:gameStartMenu()
                     --choose "种子生图" mode--
                 elseif Input.IsActionTriggered(ButtonAction.ACTION_ITEM, Bingo.player.ControllerIndex) and Bingo.startMenuSelectOfSingle == 2 then
                     math.randomseed(Bingo.game:GetSeeds():GetStartSeed())
+                    Bingo:deleteBingoMap()
                     Bingo:createBingoMap()
                     Bingo.gameMode = 0
                     Bingo.gameIsPaused = true
@@ -463,6 +469,7 @@ function Bingo:gameStartMenu()
                 if Input.IsActionTriggered(ButtonAction.ACTION_ITEM, Bingo.player.ControllerIndex) and IsaacSocket then
                     Bingo.ws = nil
                     math.randomseed(Bingo.game:GetSeeds():GetStartSeed())
+                    Bingo:deleteBingoMap()
                     Bingo:createBingoMap()
                     Bingo.gameMode = 1
                     roomIdParts = split(Bingo.keyboard.getRoomIdText(), "&")
@@ -510,7 +517,7 @@ function Bingo:showGameInfo()
     end
     if Bingo.readMapTimeIsStarted and (not Bingo.gameIsStarted) then
         Bingo.startMenu:DrawStringUTF8("读图时间: " .. Bingo.readMapTimeForShow.minute ..
-        ":" .. Bingo.readMapTimeForShow.second, 80, 212, KColor(1, 0, 0, 1))
+            ":" .. Bingo.readMapTimeForShow.second, 80, 212, KColor(1, 0, 0, 1))
     end
     if Bingo.ws == nil or Bingo.ws.IsClosed() then
         Bingo.startMenu:DrawStringUTF8("连接失败", 10, 260, KColor(255, 0, 0, 1))
@@ -678,6 +685,7 @@ end
 
 -- 功能：维护【renderPosition】、【renderPositionOfTasks】和【renderPositionOfTexts】，保证缩放窗口时坐标与新窗口对应坐标一致
 function Bingo:setPosition()
+    Bingo.renderPosition = Isaac.WorldToRenderPosition(Vector(320, 150))
     if Bingo.taskSelectionEnable then
         -- 获取鼠标在屏幕上的渲染坐标
         local mousePosition = Input.GetMousePosition(true)
@@ -690,17 +698,23 @@ function Bingo:setPosition()
                 mousePosition.Y - Bingo.renderPositionOfTexts.Y)
         end
         -- 如果鼠标正在右键且鼠标点击到了bingo大图的区域，则可以移动大图
-        if Input.IsMouseBtnPressed(1) and mousePosition.X >= Bingo.POSITION_OF_SCALED_TASKS.X - 4 and mousePosition.X <= Bingo.POSITION_OF_SCALED_TASKS.X + 124 and
+        if not Bingo.isPressedTaskDescription and Input.IsMouseBtnPressed(1) and mousePosition.X >= Bingo.POSITION_OF_SCALED_TASKS.X - 4 and mousePosition.X <= Bingo.POSITION_OF_SCALED_TASKS.X + 124 and
             mousePosition.Y >= Bingo.POSITION_OF_SCALED_TASKS.Y - 4 and mousePosition.Y <= Bingo.POSITION_OF_SCALED_TASKS.Y + 124 then
+            Bingo.isPressedTasksTable = true
+            Bingo.isPressedTaskDescription = false
             Bingo.POSITION_OF_SCALED_TASKS.X = mousePosition.X - Bingo.distanceBetweenMouseAndTaskBasePosition.X
             Bingo.POSITION_OF_SCALED_TASKS.Y = mousePosition.Y - Bingo.distanceBetweenMouseAndTaskBasePosition.Y
-        end
-        -- 如果鼠标正在右键且鼠标点击到了bingo大图任务文字描述的区域，则可以移动文字
-        if Input.IsMouseBtnPressed(1) and mousePosition.X >= Bingo.POSITION_OF_SCALED_TASKS_TEXT.X and
+            -- 如果鼠标正在右键且鼠标点击到了bingo大图任务文字描述的区域，则可以移动文字
+        elseif not Bingo.isPressedTasksTable and Input.IsMouseBtnPressed(1) and mousePosition.X >= Bingo.POSITION_OF_SCALED_TASKS_TEXT.X and
             mousePosition.X <= Bingo.POSITION_OF_SCALED_TASKS_TEXT.X + 9 * 1.6 * Bingo.taskDescriptionLength and
-            mousePosition.Y >= Bingo.POSITION_OF_SCALED_TASKS_TEXT.Y - 12*1.6 and mousePosition.Y <= Bingo.POSITION_OF_SCALED_TASKS_TEXT.Y + 18*1.6 then
+            mousePosition.Y >= Bingo.POSITION_OF_SCALED_TASKS_TEXT.Y - 12 * 1.6 and mousePosition.Y <= Bingo.POSITION_OF_SCALED_TASKS_TEXT.Y + 18 * 1.6 then
+            Bingo.isPressedTaskDescription = true
+            Bingo.isPressedTasksTable = false
             Bingo.POSITION_OF_SCALED_TASKS_TEXT.X = mousePosition.X - Bingo.distanceBetweenMouseAndTextBasePosition.X
             Bingo.POSITION_OF_SCALED_TASKS_TEXT.Y = mousePosition.Y - Bingo.distanceBetweenMouseAndTextBasePosition.Y
+        else
+            Bingo.isPressedTaskDescription = false
+            Bingo.isPressedTasksTable = false
         end
         Bingo.renderPositionOfTasks = Bingo.POSITION_OF_SCALED_TASKS
         Bingo.renderPositionOfTexts = Bingo.POSITION_OF_SCALED_TASKS_TEXT
@@ -716,20 +730,26 @@ function Bingo:setPosition()
                 mousePosition.Y - Bingo.renderPositionOfTexts.Y)
         end
         -- 如果鼠标正在右键且鼠标点击到了bingo缩略图的区域，则可以移动缩略图
-        if Input.IsMouseBtnPressed(Mouse.MOUSE_BUTTON_2) and mousePosition.X >= Bingo.POSITION_OF_TASKS.X - 3 and mousePosition.X <= Bingo.POSITION_OF_TASKS.X + 56 and
+        if not Bingo.isPressedTaskDescription and Input.IsMouseBtnPressed(Mouse.MOUSE_BUTTON_2) and mousePosition.X >= Bingo.POSITION_OF_TASKS.X - 3 and mousePosition.X <= Bingo.POSITION_OF_TASKS.X + 56 and
             mousePosition.Y >= Bingo.POSITION_OF_TASKS.Y - 3 and mousePosition.Y <= Bingo.POSITION_OF_TASKS.Y + 56 then
+            Bingo.isPressedTasksTable = true
+            Bingo.isPressedTaskDescription = false
             Bingo.POSITION_OF_TASKS.X = mousePosition.X - Bingo.distanceBetweenMouseAndTaskBasePosition.X
             Bingo.POSITION_OF_TASKS.Y = mousePosition.Y - Bingo.distanceBetweenMouseAndTaskBasePosition.Y
-        end
-        -- 如果鼠标正在右键且鼠标点击到了bingo缩略图任务文字描述的区域，则可以移动文字
-        if Input.IsMouseBtnPressed(1) and mousePosition.X >= Bingo.POSITION_OF_TASKS_TEXT.X and
+            -- 如果鼠标正在右键且鼠标点击到了bingo缩略图任务文字描述的区域，则可以移动文字
+        elseif not Bingo.isPressedTasksTable and Input.IsMouseBtnPressed(1) and mousePosition.X >= Bingo.POSITION_OF_TASKS_TEXT.X and
             mousePosition.X <= Bingo.POSITION_OF_TASKS_TEXT.X + 9 * 1 * Bingo.taskDescriptionLength and
-            mousePosition.Y >= Bingo.POSITION_OF_TASKS_TEXT.Y - 12  and mousePosition.Y <= Bingo.POSITION_OF_TASKS_TEXT.Y + 18 then
+            mousePosition.Y >= Bingo.POSITION_OF_TASKS_TEXT.Y - 12 and mousePosition.Y <= Bingo.POSITION_OF_TASKS_TEXT.Y + 18 then
+            Bingo.isPressedTaskDescription = true
+            Bingo.isPressedTasksTable = false
             Bingo.POSITION_OF_TASKS_TEXT.X = mousePosition.X - Bingo.distanceBetweenMouseAndTextBasePosition.X
             Bingo.POSITION_OF_TASKS_TEXT.Y = mousePosition.Y - Bingo.distanceBetweenMouseAndTextBasePosition.Y
+        else
+            Bingo.isPressedTaskDescription = false
+            Bingo.isPressedTasksTable = false
         end
         Bingo.renderPositionOfTasks = Bingo.POSITION_OF_TASKS
-        Bingo.renderPositionOfTexts=Bingo.POSITION_OF_TASKS_TEXT
+        Bingo.renderPositionOfTexts = Bingo.POSITION_OF_TASKS_TEXT
     end
 end
 
@@ -789,8 +809,6 @@ function Bingo:gameInitialize(isContinued)
         Bingo.taskSelectionPosition.X = 0
         Bingo.taskSelectionPosition.Y = 0
         Bingo.taskSelectionEnable = false
-        Bingo.randomTasksQueue = {}
-        itemPoolOfPickedUpActive = {}
         Bingo.finishTasksNum = 0
         Bingo.longestLineLength = 0
 
@@ -798,7 +816,7 @@ function Bingo:gameInitialize(isContinued)
     end
 end
 
--- 功能：出该局就会重置整局
+-- 功能：退出该局保存相关数据
 -- 需要修改
 function Bingo:resetWhenExit(ShouldSave)
     if ShouldSave then
@@ -1145,6 +1163,25 @@ function Bingo:createBingoMap()
         end
     end
     --如果当前生成节点所在的位置在主对角线上，检索有无矛盾元素
+end
+
+function Bingo:deleteBingoMap()
+    if IsaacSocket and Bingo.ws ~= nil then
+        Bingo.ws.Close(1000, "成功关闭连接")
+    end
+    if next(Bingo.map, nil) ~= nil then
+        for i = 1, 5, 1 do
+            for j = 1, 5, 1 do
+                Bingo.map[i][j] = nil;
+            end
+        end
+    end
+    for key, value in pairs(Bingo.mapForCallBacks) do
+        Bingo.mapForCallBacks[key] = {}
+    end
+    Bingo.map = {}
+    -- 测试任务用
+    test = nil
 end
 
 -- 功能：更新完成任务数和最长连线长度信息
