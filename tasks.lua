@@ -2720,7 +2720,6 @@ end
 
 -- 任务92: 累计杀死200只怪物
 local function task92Method(task, entity)
-    print("jisfsfs")
     if entity:IsActiveEnemy(true) then
         task.detailedTaskPart.achieveCount = task.detailedTaskPart.achieveCount + 1
     end

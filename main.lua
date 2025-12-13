@@ -1,6 +1,6 @@
 StartDebug()
 Bingo = RegisterMod("Bingo", 1)
-Bingo.version = "5.12"
+Bingo.version = "5.13"
 
 -- =======================================================
 -- 【全局游戏】：一些全局量
@@ -388,6 +388,7 @@ function Bingo:gameStartMenu()
                 --choose "随便开把" mode--
                 if Input.IsActionTriggered(ButtonAction.ACTION_ITEM, Bingo.player.ControllerIndex) and Bingo.startMenuSelectOfSingle == 1 then
                     math.randomseed(Random())
+                    Bingo:deleteBingoMap()
                     Bingo:createBingoMap()
 
                     -- 测试用
@@ -410,6 +411,7 @@ function Bingo:gameStartMenu()
                     --choose "种子生图" mode--
                 elseif Input.IsActionTriggered(ButtonAction.ACTION_ITEM, Bingo.player.ControllerIndex) and Bingo.startMenuSelectOfSingle == 2 then
                     math.randomseed(Bingo.game:GetSeeds():GetStartSeed())
+                    Bingo:deleteBingoMap()
                     Bingo:createBingoMap()
                     Bingo.gameMode = 0
                     Bingo.gameIsPaused = true
@@ -467,6 +469,7 @@ function Bingo:gameStartMenu()
                 if Input.IsActionTriggered(ButtonAction.ACTION_ITEM, Bingo.player.ControllerIndex) and IsaacSocket then
                     Bingo.ws = nil
                     math.randomseed(Bingo.game:GetSeeds():GetStartSeed())
+                    Bingo:deleteBingoMap()
                     Bingo:createBingoMap()
                     Bingo.gameMode = 1
                     roomIdParts = split(Bingo.keyboard.getRoomIdText(), "&")
@@ -682,7 +685,7 @@ end
 
 -- 功能：维护【renderPosition】、【renderPositionOfTasks】和【renderPositionOfTexts】，保证缩放窗口时坐标与新窗口对应坐标一致
 function Bingo:setPosition()
-    Bingo.renderPosition=Isaac.WorldToRenderPosition(Vector(320, 150))
+    Bingo.renderPosition = Isaac.WorldToRenderPosition(Vector(320, 150))
     if Bingo.taskSelectionEnable then
         -- 获取鼠标在屏幕上的渲染坐标
         local mousePosition = Input.GetMousePosition(true)
@@ -1160,6 +1163,25 @@ function Bingo:createBingoMap()
         end
     end
     --如果当前生成节点所在的位置在主对角线上，检索有无矛盾元素
+end
+
+function Bingo:deleteBingoMap()
+    if IsaacSocket and Bingo.ws ~= nil then
+        Bingo.ws.Close(1000, "成功关闭连接")
+    end
+    if next(Bingo.map, nil) ~= nil then
+        for i = 1, 5, 1 do
+            for j = 1, 5, 1 do
+                Bingo.map[i][j] = nil;
+            end
+        end
+    end
+    for key, value in pairs(Bingo.mapForCallBacks) do
+        Bingo.mapForCallBacks[key] = {}
+    end
+    Bingo.map = {}
+    -- 测试任务用
+    test = nil
 end
 
 -- 功能：更新完成任务数和最长连线长度信息
