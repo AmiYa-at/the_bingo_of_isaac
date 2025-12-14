@@ -1,6 +1,6 @@
 StartDebug()
 Bingo = RegisterMod("Bingo", 1)
-Bingo.version = "5.13"
+Bingo.version = "5.14"
 
 -- =======================================================
 -- 【全局游戏】：一些全局量
@@ -779,6 +779,7 @@ function Bingo:gameInitialize(isContinued)
         Bingo.gameTimeForShow.minute = "00"
         Bingo.gameTimeForShow.second = "00"
         Bingo.gameIsPaused = false
+        Bingo.enableCooperatedMode=false
         Bingo.puaseTime = 0
         Bingo.continuedTime = 0
         Bingo.readMapTime = 0
@@ -825,17 +826,7 @@ function Bingo:resetWhenExit(ShouldSave)
         if IsaacSocket and Bingo.ws ~= nil then
             Bingo.ws.Close(1000, "成功关闭连接")
         end
-        if next(Bingo.map, nil) ~= nil then
-            for i = 1, 5, 1 do
-                for j = 1, 5, 1 do
-                    Bingo.map[i][j] = nil;
-                end
-            end
-        end
-        for key, value in pairs(Bingo.mapForCallBacks) do
-            Bingo.mapForCallBacks[key] = {}
-        end
-        Bingo.map = {}
+        Bingo:deleteBingoMap()
         -- 测试任务用
         test = nil
     end
@@ -1166,9 +1157,6 @@ function Bingo:createBingoMap()
 end
 
 function Bingo:deleteBingoMap()
-    if IsaacSocket and Bingo.ws ~= nil then
-        Bingo.ws.Close(1000, "成功关闭连接")
-    end
     if next(Bingo.map, nil) ~= nil then
         for i = 1, 5, 1 do
             for j = 1, 5, 1 do

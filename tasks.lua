@@ -156,7 +156,7 @@ local taskDescriptionList = {
     [55] = "移速等于2",
     [56] = "第一层不拿除了初始携带的道具以外的任何道具",
     [57] = "打2个Boss挑战房",
-    [58] = "击败大小贪婪头目",
+    [58] = "击败2个贪婪头目",
     [59] = "拥有1个疾病主题的道具",
     [60] = "进入5个商店房",
     [61] = "进入5个宝箱房",
@@ -743,7 +743,6 @@ local function hasKilledBosses(task)
     for key, value in pairs(task.detailedTaskPart.bossPtr) do
         if value ~= true and ((value.Ref ~= nil and value.Ref:IsDead()) or value.Ref == nil) then
             task.detailedTaskPart.achieveCount = task.detailedTaskPart.achieveCount + 1
-            print("114")
             task.detailedTaskPart.bossPtr[key] = true
         end
     end
@@ -860,7 +859,7 @@ end
 local function task52()
     local obj = {
         task = tasks_new(true, 52, taskDescriptionList[52]),
-        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_BEAST, variant = 0 } }),
+        detailedTaskPart = bossesOption({ { type = EntityType.ENTITY_BEAST, variant = 0 } },1),
         [ModCallbacks.MC_POST_UPDATE] = {
             hasKilledBosses
         },
@@ -869,7 +868,7 @@ local function task52()
     return obj
 end
 
--- 任务58：击败大小贪婪头目
+-- 任务58：击败2个贪婪头目
 local function task58()
     local obj = {
         task = tasks_new(true, 58, taskDescriptionList[58]),
@@ -2351,7 +2350,8 @@ end
 
 local function task56AssistanceFunc1(task)
     local stage = Bingo.game:GetLevel():GetStage()
-    if stage == LevelStage.STAGE1_1 then
+    local stageType = Bingo.game:GetLevel():GetStageType()
+    if stage == LevelStage.STAGE1_1 and stageType <=StageType.STAGETYPE_AFTERBIRTH then
         task.detailedTaskPart.isPickCollectible = false
     end
 end
