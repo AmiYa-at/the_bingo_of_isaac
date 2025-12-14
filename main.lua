@@ -1,6 +1,6 @@
 StartDebug()
 Bingo = RegisterMod("Bingo", 1)
-Bingo.version = "5.14"
+Bingo.version = "5.15"
 
 -- =======================================================
 -- 【全局游戏】：一些全局量
